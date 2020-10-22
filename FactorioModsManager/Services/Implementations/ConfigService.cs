@@ -58,7 +58,7 @@ namespace FactorioModsManager.Services.Implementations
 
                     ConfigVersion = 1,
 
-                    FactorioVersionsToMaintain = new List<FactorioVersion>()
+                    MaintainedFactorioVersions = new List<FactorioVersion>()
                     {
                         new FactorioVersion(1, 0, 0),
                         new FactorioVersion(0, 18, 0),

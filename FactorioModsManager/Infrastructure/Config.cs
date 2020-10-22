@@ -11,7 +11,7 @@ namespace FactorioModsManager.Infrastructure
 
         public int ConfigVersion { get; set; }
 
-        public List<FactorioVersion> FactorioVersionsToMaintain { get; set; }
+        public List<FactorioVersion> MaintainedFactorioVersions { get; set; }
 
         public string FactorioUserName { get; set; }
 
