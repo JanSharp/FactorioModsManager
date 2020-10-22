@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using FactorioModPortalClient;
 using FactorioModsManager.Services;
 using FactorioModsManager.Services.Implementations;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +12,15 @@ namespace FactorioModsManager
         static async Task Main(string[] args)
         {
             var serviceCollection = new ServiceCollection();
+
+            serviceCollection.AddSingleton<IModPortalClient, ModPortalClient>(sp =>
+            {
+                var configService = sp.GetService<IConfigService>();
+                var config = configService.GetConfig();
+                return new ModPortalClient(config.FactorioUserName,
+                    config.FactorioUserToken,
+                    (int)config.MaxApiRequestsPerMinute);
+            });
 
             serviceCollection.AddSingleton<IConfigService, ConfigService>();
             serviceCollection.AddSingleton<IArgsService, ArgsService>(sp
