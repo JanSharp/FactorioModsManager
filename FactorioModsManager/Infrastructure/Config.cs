@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
+using System.Xml.Serialization;
 
 namespace FactorioModsManager.Infrastructure
 {
     public class Config
     {
-        [NonSerialized]
+        [XmlIgnore]
         public string configPath;
 
         public int ConfigVersion { get; set; }
@@ -20,12 +20,17 @@ namespace FactorioModsManager.Infrastructure
         public uint MaxApiRequestsPerMinute { get; set; }
 
         public string ModsPath { get; set; }
+        public string GetFullModsPath() => GetFullPath(ModsPath);
 
-        public string GetFullModsPath()
+        public string DataPath { get; set; }
+        public string GetFullDataPath() => GetFullPath(DataPath);
+
+        private string GetFullPath(string path)
         {
-            if (Path.IsPathRooted(ModsPath))
-                return ModsPath;
-            return Path.Combine(Path.GetDirectoryName(configPath), ModsPath);
+            if (Path.IsPathRooted(path))
+                return path;
+            return Path.Combine(Path.GetDirectoryName(configPath), path);
         }
+
     }
 }
