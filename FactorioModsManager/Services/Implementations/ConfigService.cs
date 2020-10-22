@@ -61,6 +61,7 @@ namespace FactorioModsManager.Services.Implementations
                     FactorioVersionsToMaintain = new List<FactorioVersion>()
                     {
                         new FactorioVersion(1, 0, 0),
+                        new FactorioVersion(0, 18, 0),
                     },
                     FactorioUserName = "undefined",
                     FactorioUserToken = "undefined",
