@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30523.141
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FactorioModsManager", "FactorioModsManager\FactorioModsManager.csproj", "{8969B03D-108F-4284-982C-50D2672243F2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FactorioModPortalClient", "FactorioModPortalClient\FactorioModPortalClient\FactorioModPortalClient.csproj", "{419F139E-DE92-4F76-81B4-C9D9626EDAC4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8969B03D-108F-4284-982C-50D2672243F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8969B03D-108F-4284-982C-50D2672243F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8969B03D-108F-4284-982C-50D2672243F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8969B03D-108F-4284-982C-50D2672243F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{419F139E-DE92-4F76-81B4-C9D9626EDAC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{419F139E-DE92-4F76-81B4-C9D9626EDAC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{419F139E-DE92-4F76-81B4-C9D9626EDAC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{419F139E-DE92-4F76-81B4-C9D9626EDAC4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0F262057-7B0B-47CD-AC15-BA84E9EED4ED}
+	EndGlobalSection
+EndGlobal
