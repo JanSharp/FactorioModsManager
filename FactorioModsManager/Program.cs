@@ -21,9 +21,9 @@ namespace FactorioModsManager
 
             var serviceScopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
 
-            using var scope = serviceScopeFactory.CreateScope();
             try
             {
+                using var scope = serviceScopeFactory.CreateScope();
                 var configService = scope.ServiceProvider.GetService<IMainService>();
                 await configService.Run();
             }
