@@ -12,10 +12,12 @@ namespace FactorioModsManager.Services.Implementations
         private string configFileName;
         private Config config;
         private readonly XmlSerializer serializer;
+        private readonly IArgsService argsService;
 
-        public ConfigService()
+        public ConfigService(IArgsService argsService)
         {
             serializer = new XmlSerializer(typeof(Config));
+            this.argsService = argsService;
             LoadConfigFileName();
             ReadConfigFile();
         }
@@ -33,7 +35,8 @@ namespace FactorioModsManager.Services.Implementations
 
         private void LoadConfigFileName()
         {
-            configFileName = File.ReadAllText(ConfigFilePointerFileName, Encoding.UTF8);
+            configFileName = argsService.GetArgs().configFilePath ??
+                File.ReadAllText(ConfigFilePointerFileName, Encoding.UTF8);
         }
 
         private void ReadConfigFile()
