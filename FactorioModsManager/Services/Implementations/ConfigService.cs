@@ -46,6 +46,7 @@ namespace FactorioModsManager.Services.Implementations
                 // somehow manage migrating an old version of the config once there are multiple versions
                 using var fileStream = File.OpenRead(configPath);
                 config = (Config)serializer.Deserialize(fileStream);
+                config.configPath = configPath;
                 fileStream.Close();
             }
             else
@@ -53,6 +54,8 @@ namespace FactorioModsManager.Services.Implementations
                 // default config
                 config = new Config()
                 {
+                    configPath = configPath,
+
                     ConfigVersion = 1,
 
                     FactorioVersionsToMaintain = new List<FactorioVersion>()
@@ -62,6 +65,7 @@ namespace FactorioModsManager.Services.Implementations
                     FactorioUserName = "undefined",
                     FactorioUserToken = "undefined",
                     MaxApiRequestsPerMinute = 100,
+                    ModsPath = "Mods",
                 };
                 WriteConfigFile();
             }

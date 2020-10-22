@@ -1,9 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace FactorioModsManager.Infrastructure
 {
     public class Config
     {
+        [NonSerialized]
+        public string configPath;
+
         public int ConfigVersion { get; set; }
 
         public List<FactorioVersion> FactorioVersionsToMaintain { get; set; }
@@ -15,5 +20,12 @@ namespace FactorioModsManager.Infrastructure
         public uint MaxApiRequestsPerMinute { get; set; }
 
         public string ModsPath { get; set; }
+
+        public string GetFullModsPath()
+        {
+            if (new Uri(ModsPath).IsAbsoluteUri)
+                return ModsPath;
+            return Path.Combine(Path.GetDirectoryName(configPath), ModsPath);
+        }
     }
 }
