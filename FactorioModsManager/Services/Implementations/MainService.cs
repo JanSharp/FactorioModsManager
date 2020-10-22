@@ -1,21 +1,27 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using FactorioModPortalClient;
+using FactorioModsManager.Infrastructure;
 
 namespace FactorioModsManager.Services.Implementations
 {
     public class MainService : IMainService
     {
         private readonly IConfigService configService;
+        private readonly IProgramDataService programDataService;
         private readonly IModPortalClient client;
 
         public MainService(
             IConfigService configService,
+            IProgramDataService programDataService,
             IModPortalClient client)
         {
             this.configService = configService;
+            this.programDataService = programDataService;
             this.client = client;
         }
-    
+
         /* concept:
          * 
          * foreach mod on the portal, check if we have an entry for said mod alraedy
@@ -34,10 +40,34 @@ namespace FactorioModsManager.Services.Implementations
 
         public async Task Run()
         {
-            await foreach(var entry in client.EnumerateAsync())
-            {
+            ProgramData programData = programDataService.GetProgramData();
 
+            await foreach (var entry in client.EnumerateAsync())
+            {
+                if (programData.Mods.TryGetValue(entry.Name, out var modData))
+                {
+                    modData.DownloadsCount = entry.DownloadsCount;
+                    modData.Owner = entry.Owner;
+                    modData.Title = entry.Title;
+                }
+                else
+                {
+                    var releases = new List<ReleaseData>();
+                    programData.Mods.Add(entry.Name,
+                        new ModData(
+                            entry.Name,
+                            entry.Owner,
+                            releases,
+                            entry.Title,
+                            DateTime.Now)
+                        {
+                            DownloadsCount = entry.DownloadsCount,
+                            Summary = entry.Summary,
+                        });
+                }
             }
+
+            programDataService.SetProgramData(programData);
         }
     }
 }

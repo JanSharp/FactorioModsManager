@@ -24,6 +24,12 @@ namespace FactorioModsManager.Infrastructure
         }
 
         /// <summary>
+        /// Number of downloads.
+        /// </summary>
+        [DataMember(/*IsRequired = true*/)]
+        public int DownloadsCount { get; set; }
+
+        /// <summary>
         /// The mod's machine-readable ID string.
         /// </summary>
         [DataMember(/*IsRequired = true*/)]
