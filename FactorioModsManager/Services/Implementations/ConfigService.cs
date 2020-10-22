@@ -8,8 +8,8 @@ namespace FactorioModsManager.Services.Implementations
 {
     public class ConfigService : IConfigService
     {
-        private const string ConfigFilePointerFileName = @"FactorioModsManagerConfigFilePath.txt";
-        private string configFileName;
+        private const string ConfigFilePointerPath = @"FactorioModsManagerConfigFilePath.txt";
+        private string configPath;
         private Config config;
         private readonly XmlSerializer serializer;
         private readonly IArgsService argsService;
@@ -35,16 +35,16 @@ namespace FactorioModsManager.Services.Implementations
 
         private void LoadConfigFileName()
         {
-            configFileName = argsService.GetArgs().configFilePath ??
-                File.ReadAllText(ConfigFilePointerFileName, Encoding.UTF8);
+            configPath = argsService.GetArgs().configFilePath ??
+                File.ReadAllText(ConfigFilePointerPath, Encoding.UTF8);
         }
 
         private void ReadConfigFile()
         {
-            if (File.Exists(configFileName))
+            if (File.Exists(configPath))
             {
                 // somehow manage migrating an old version of the config once there are multiple versions
-                using var fileStream = File.OpenRead(configFileName);
+                using var fileStream = File.OpenRead(configPath);
                 config = (Config)serializer.Deserialize(fileStream);
                 fileStream.Close();
             }
@@ -69,9 +69,9 @@ namespace FactorioModsManager.Services.Implementations
 
         private void WriteConfigFile()
         {
-            using FileStream fileStream = File.Exists(configFileName)
-                ? File.OpenWrite(configFileName)
-                : File.Create(configFileName);
+            using FileStream fileStream = File.Exists(configPath)
+                ? File.OpenWrite(configPath)
+                : File.Create(configPath);
             serializer.Serialize(fileStream, config);
             fileStream.Close();
         }

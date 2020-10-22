@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Text;
 
 namespace FactorioModsManager.Infrastructure
 {
@@ -14,5 +13,7 @@ namespace FactorioModsManager.Infrastructure
         public string FactorioUserToken { get; set; }
 
         public uint MaxApiRequestsPerMinute { get; set; }
+
+        public string ModsPath { get; set; }
     }
 }
