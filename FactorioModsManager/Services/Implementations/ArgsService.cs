@@ -20,7 +20,7 @@ namespace FactorioModsManager.Services.Implementations
                         if (i >= args.Length)
                             throw new Exception($"Cmd arg '--config' requires a subsequent arg.");
 
-                        programArgs.configFilePath = args[i];
+                        programArgs.ConfigFilePath = args[i];
                         break;
 
                     default:

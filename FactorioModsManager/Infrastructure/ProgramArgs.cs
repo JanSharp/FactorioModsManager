@@ -2,6 +2,6 @@
 {
     public class ProgramArgs
     {
-        public string configFilePath;
+        public string? ConfigFilePath { get; set; }
     }
 }

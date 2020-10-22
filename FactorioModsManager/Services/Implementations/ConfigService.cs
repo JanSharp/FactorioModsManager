@@ -14,7 +14,10 @@ namespace FactorioModsManager.Services.Implementations
         private readonly XmlSerializer serializer;
         private readonly IArgsService argsService;
 
+        // disable warnings because they are being initialized in the functions in the constructor
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public ConfigService(IArgsService argsService)
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
             serializer = new XmlSerializer(typeof(Config));
             this.argsService = argsService;
@@ -35,7 +38,7 @@ namespace FactorioModsManager.Services.Implementations
 
         private void LoadConfigFileName()
         {
-            configPath = argsService.GetArgs().configFilePath ??
+            configPath = argsService.GetArgs().ConfigFilePath ??
                 File.ReadAllText(ConfigFilePointerPath, Encoding.UTF8);
         }
 
@@ -52,23 +55,23 @@ namespace FactorioModsManager.Services.Implementations
             else
             {
                 // default config
-                config = new Config()
-                {
-                    configPath = configPath,
-
-                    ConfigVersion = 1,
-
-                    MaintainedFactorioVersions = new List<FactorioVersion>()
+                config = new Config(
+                    configPath: configPath,
+                    
+                    configVersion: 1,
+                    
+                    maintainedFactorioVersions: new List<FactorioVersion>()
                     {
                         new FactorioVersion(1, 0, 0),
                         new FactorioVersion(0, 18, 0),
                     },
-                    FactorioUserName = "undefined",
-                    FactorioUserToken = "undefined",
-                    MaxApiRequestsPerMinute = 100,
-                    ModsPath = "Mods",
-                    DataPath = "Data",
-                };
+                    factorioUserName: "undefined",
+                    factorioUserToken: "undefined",
+                    maxApiRequestsPerMinute: 100,
+                    modsPath: "Mods",
+                    dataPath: "Data"
+                    );
+
                 WriteConfigFile();
             }
         }

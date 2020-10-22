@@ -6,8 +6,27 @@ namespace FactorioModsManager.Infrastructure
 {
     public class Config
     {
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+        public Config()
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+        {
+
+        }
+
+        public Config(string? configPath, int configVersion, List<FactorioVersion> maintainedFactorioVersions, string factorioUserName, string factorioUserToken, uint maxApiRequestsPerMinute, string modsPath, string dataPath)
+        {
+            this.configPath = configPath;
+            ConfigVersion = configVersion;
+            MaintainedFactorioVersions = maintainedFactorioVersions;
+            FactorioUserName = factorioUserName;
+            FactorioUserToken = factorioUserToken;
+            MaxApiRequestsPerMinute = maxApiRequestsPerMinute;
+            ModsPath = modsPath;
+            DataPath = dataPath;
+        }
+
         [XmlIgnore]
-        public string configPath;
+        public string? configPath;
 
         public int ConfigVersion { get; set; }
 
@@ -29,7 +48,10 @@ namespace FactorioModsManager.Infrastructure
         {
             if (Path.IsPathRooted(path))
                 return path;
-            return Path.Combine(Path.GetDirectoryName(configPath), path);
+            string? dirPath = Path.GetDirectoryName(configPath);
+            if (dirPath == null)
+                return path;
+            return Path.Combine(dirPath, path);
         }
 
     }
