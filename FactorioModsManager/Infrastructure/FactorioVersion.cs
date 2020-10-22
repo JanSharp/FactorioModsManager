@@ -7,14 +7,10 @@ using System.Xml.Serialization;
 
 namespace FactorioModsManager.Infrastructure
 {
-    [Serializable]
     public class FactorioVersion : IXmlSerializable
     {
-        [NonSerialized]
         public ushort major;
-        [NonSerialized]
         public ushort minor;
-        [NonSerialized]
         public ushort patch;
 
         public FactorioVersion()

@@ -13,15 +13,15 @@ namespace FactorioModsManager.Infrastructure
 
         }
 
-        public ProgramData(List<ModData> mods)
+        public ProgramData(Dictionary<string, ModData> mods)
         {
             Mods = mods;
         }
 
-        [DataMember(IsRequired = true)]
+        [DataMember(/*IsRequired = true*/)]
         public int ProgramDataVersion { get; set; } = 1;
 
-        [DataMember(IsRequired = true)]
-        public List<ModData> Mods { get; set; }
+        [DataMember(/*IsRequired = true*/)]
+        public Dictionary<string, ModData> Mods { get; set; }
     }
 }

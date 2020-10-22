@@ -12,19 +12,19 @@ namespace FactorioModsManager.Infrastructure
             DependencyType = dependencyType;
         }
 
-        [DataMember(IsRequired = true)]
+        [DataMember(/*IsRequired = true*/)]
         public ReleaseData SourceRelease { get; set; }
 
-        [DataMember(IsRequired = true)]
+        [DataMember(/*IsRequired = true*/)]
         public ModData TargetMod { get; set; }
 
-        [DataMember(IsRequired = true)]
+        [DataMember(/*IsRequired = true*/)]
         public ModDependencyType DependencyType { get; set; }
 
         [DataMember(IsRequired = false)]
         public FactorioVersion? TargetVersion { get; set; }
 
-        [DataMember(IsRequired = true)]
+        [DataMember(/*IsRequired = true*/)]
         public ModDependencyOperator Operator { get; set; } = ModDependencyOperator.None;
     }
 }

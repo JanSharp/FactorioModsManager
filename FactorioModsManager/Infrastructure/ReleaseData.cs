@@ -27,37 +27,37 @@ namespace FactorioModsManager.Infrastructure
         /// <summary>
         /// Path to download for a mod. starts with "/download" and does not include a full url.
         /// </summary>
-        [DataMember(IsRequired = true)]
+        [DataMember(/*IsRequired = true*/)]
         public string DownloadUrl { get; set; }
 
         /// <summary>
         /// from InfoJson
         /// </summary>
-        [DataMember(IsRequired = true)]
+        [DataMember(/*IsRequired = true*/)]
         public FactorioVersion FactorioVersion { get; set; }
 
         /// <summary>
         /// from InfoJson
         /// </summary>
-        [DataMember(IsRequired = true)]
+        [DataMember(/*IsRequired = true*/)]
         public List<ModDependency> Dependencies { get; set; }
 
         /// <summary>
         /// ISO 6501 for when the mod was released.
         /// </summary>
-        [DataMember(IsRequired = true)]
+        [DataMember(/*IsRequired = true*/)]
         public DateTime ReleasedAt { get; set; }
 
         /// <summary>
         /// The version string of this mod release. Used to determine dependencies.
         /// </summary>
-        [DataMember(IsRequired = true)]
+        [DataMember(/*IsRequired = true*/)]
         public FactorioVersion Version { get; set; }
 
         /// <summary>
         /// The sha1 key for the file
         /// </summary>
-        [DataMember(IsRequired = true)]
+        [DataMember(/*IsRequired = true*/)]
         public string Sha1 { get; set; }
     }
 }

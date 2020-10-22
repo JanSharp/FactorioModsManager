@@ -26,19 +26,19 @@ namespace FactorioModsManager.Infrastructure
         /// <summary>
         /// The mod's machine-readable ID string.
         /// </summary>
-        [DataMember(IsRequired = true)]
+        [DataMember(/*IsRequired = true*/)]
         public string Name { get; set; }
 
         /// <summary>
         /// The Factorio username of the mod's author.
         /// </summary>
-        [DataMember(IsRequired = true)]
+        [DataMember(/*IsRequired = true*/)]
         public string Owner { get; set; }
 
         /// <summary>
         /// A list of different versions of the mod available for download.
         /// </summary>
-        [DataMember(IsRequired = true)]
+        [DataMember(/*IsRequired = true*/)]
         public List<ReleaseData> Releases { get; set; }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace FactorioModsManager.Infrastructure
         /// <summary>
         /// The mod's human-readable name.
         /// </summary>
-        [DataMember(IsRequired = true)]
+        [DataMember(/*IsRequired = true*/)]
         public string Title { get; set; }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace FactorioModsManager.Infrastructure
         /// <summary>
         /// ISO 6501 for when the mod was created.
         /// </summary>
-        [DataMember(IsRequired = true)]
+        [DataMember(/*IsRequired = true*/)]
         public DateTime CreatedAt { get; set; }
 
         /// <summary>
