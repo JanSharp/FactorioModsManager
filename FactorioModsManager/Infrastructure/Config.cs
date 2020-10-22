@@ -23,7 +23,7 @@ namespace FactorioModsManager.Infrastructure
 
         public string GetFullModsPath()
         {
-            if (new Uri(ModsPath).IsAbsoluteUri)
+            if (Path.IsPathRooted(ModsPath))
                 return ModsPath;
             return Path.Combine(Path.GetDirectoryName(configPath), ModsPath);
         }
