@@ -24,6 +24,7 @@ namespace FactorioModsManager
 
             serviceCollection.AddSingleton<IConfigService, ConfigService>();
             serviceCollection.AddSingleton<IProgramDataService, ProgramDataService>();
+            serviceCollection.AddSingleton<IMapperService, MapperService>();
             serviceCollection.AddSingleton<IArgsService, ArgsService>(sp
                 => ActivatorUtilities.CreateInstance<ArgsService>(sp, new[] { args }));
             serviceCollection.AddSingleton<IMainService, MainService>();
