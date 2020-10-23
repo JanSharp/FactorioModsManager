@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using FactorioModPortalClient;
 using FactorioModsManager.Infrastructure;
+
+using static MoreLinq.Extensions.FullGroupJoinExtension;
 
 namespace FactorioModsManager.Services.Implementations
 {
@@ -53,30 +56,69 @@ namespace FactorioModsManager.Services.Implementations
 
                 if (programData.Mods.TryGetValue(entry.Name, out var modData))
                 {
-                    mapperService.MapToModData(entry, modData);
+                    var existingLatestRelease = modData.GetLatestReleaseData();
+                    if (existingLatestRelease == null
+                        || entry.LatestRelease.ReleasedAt != existingLatestRelease.ReleasedAt)
+                    {
+                        SyncMod(await client.GetResultEntryFullAsync(entry.Name), modData);
+                    }
+                    else
+                    {
+                        SyncModPartial(entry, modData);
+                    }
                 }
                 else
                 {
                     var entryFull = await client.GetResultEntryFullAsync(entry.Name);
                     modData = mapperService.MapToModData(entryFull);
+                    SyncMod(entryFull, modData);
                     programData.Mods.Add(modData.Name, modData);
-
-                    foreach (var release in entryFull.Releases)
-                    {
-                        var releaseData = mapperService.MapToReleaseData(release);
-                        modData.Releases.Add(releaseData);
-
-                        foreach (var dependency in release.InfoJson.Dependencies.dependencies)
-                        {
-
-                        }
-                    }
                 }
             }
 
             TryResolveModDependencys(programData);
 
             programDataService.SetProgramData(programData);
+        }
+
+        public void SyncModPartial(ResultEntry portalMod, ModData modData)
+        {
+            mapperService.MapToModData(portalMod, modData);
+        }
+
+        public void SyncMod(ResultEntryFull portalMod, ModData modData)
+        {
+            mapperService.MapToModData(portalMod, modData);
+
+            HashSet<string> maintainedFactorioVersions = configService.GetConfig().MaintainedFactorioVersions
+                .Select(v => v.ToString())
+                .ToHashSet();
+
+            var portalMaintainedReleases = portalMod.Releases
+                .Where(r => maintainedFactorioVersions.Contains(r.InfoJson.FactorioVersion));
+
+            foreach (var joined in modData.Releases.FullGroupJoin(portalMaintainedReleases,
+                release => release.Version.ToString(), portalRelease => portalRelease.Version,
+                (key, releases, portalReleases) => (release: releases.SingleOrDefault(), portalRelease: portalReleases.SingleOrDefault())))
+            {
+                if (joined.release == null)
+                {
+                    // TODO: check if a zip for this release already exists
+                    // otherwise download
+
+                    var releaseData = mapperService.MapToReleaseData(joined.portalRelease!);
+                    modData.Releases.Add(releaseData);
+
+                    foreach (var dependency in joined.portalRelease!.InfoJson.Dependencies.dependencies)
+                    {
+                        releaseData.Dependencies.Add(new ModDependency(releaseData, dependency));
+                    }
+                }
+                else if (joined.portalRelease == null) // doesn't exist in the portal anymore
+                {
+                    // TODO: should this delete the local release?
+                }
+            }
         }
 
         public void TryResolveModDependencys(ProgramData programData)

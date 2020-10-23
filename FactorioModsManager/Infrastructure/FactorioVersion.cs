@@ -46,6 +46,11 @@ namespace FactorioModsManager.Infrastructure
             return result;
         }
 
+        public override string ToString()
+        {
+            return $"{major}.{minor}{(patch.HasValue ? $".{patch}" : "")}";
+        }
+
         public XmlSchema GetSchema()
         {
             throw new NotImplementedException();
@@ -58,7 +63,7 @@ namespace FactorioModsManager.Infrastructure
 
         public void WriteXml(XmlWriter writer)
         {
-            writer.WriteString($"{major}.{minor}{(patch.HasValue ? $".{patch}" : "")}");
+            writer.WriteString(this.ToString());
         }
     }
 }

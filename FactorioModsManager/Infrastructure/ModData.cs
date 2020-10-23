@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 
 namespace FactorioModsManager.Infrastructure
@@ -88,5 +89,10 @@ namespace FactorioModsManager.Infrastructure
         /// </summary>
         [DataMember(IsRequired = false)]
         public string? Homepage { get; set; }
+
+        public ReleaseData? GetLatestReleaseData()
+        {
+            return Releases.OrderByDescending(r => r.ReleasedAt).FirstOrDefault();
+        }
     }
 }
