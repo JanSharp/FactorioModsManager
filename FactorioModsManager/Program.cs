@@ -37,7 +37,7 @@ namespace FactorioModsManager
             {
                 using var scope = serviceScopeFactory.CreateScope();
                 var configService = scope.ServiceProvider.GetService<IMainService>();
-                await configService.Run();
+                await configService.RunAsync();
             }
             catch (Exception e)
             {

@@ -41,7 +41,7 @@ namespace FactorioModsManager.Services.Implementations
          * 
          */
 
-        public async Task Run()
+        public async Task RunAsync()
         {
             ProgramData programData = programDataService.GetProgramData();
 
