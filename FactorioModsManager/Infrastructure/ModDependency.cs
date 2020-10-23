@@ -10,6 +10,7 @@ namespace FactorioModsManager.Infrastructure
         {
             SourceRelease = sourceRelease;
             TargetMod = targetMod;
+            TargetModName = targetMod.Name;
             DependencyType = dependencyType;
         }
 
@@ -26,20 +27,16 @@ namespace FactorioModsManager.Infrastructure
         [DataMember(IsRequired = false)]
         public ModData? TargetMod { get; set; }
 
-        [DataMember(IsRequired = false)]
-        public string? TargetModName { get; set; }
+        [DataMember(/*IsRequired = true*/)]
+        public string TargetModName { get; set; }
 
         public string GetTargetModName()
         {
-            if (TargetModName != null
-                && TargetMod != null
-                && TargetModName != TargetMod.Name)
+            if (TargetMod != null && TargetModName != TargetMod.Name)
                 throw new Exception($"{nameof(TargetModName)} ({TargetModName}) does not match " +
                     $"{nameof(TargetMod)}.{nameof(TargetMod.Name)} ({TargetMod.Name}).");
 
-            return TargetModName ?? TargetMod?.Name
-                ?? throw new Exception($"Unable to get the target mod name of a {nameof(ModDependency)} " +
-                $"for {nameof(TargetMod)} and {nameof(TargetMod)}.{nameof(TargetMod.Name)} are both null.");
+            return TargetModName;
         }
 
         [DataMember(/*IsRequired = true*/)]
