@@ -10,15 +10,18 @@ namespace FactorioModsManager.Services.Implementations
     {
         private readonly IConfigService configService;
         private readonly IProgramDataService programDataService;
+        private readonly IMapperService mapperService;
         private readonly IModPortalClient client;
 
         public MainService(
             IConfigService configService,
             IProgramDataService programDataService,
+            IMapperService mapperService,
             IModPortalClient client)
         {
             this.configService = configService;
             this.programDataService = programDataService;
+            this.mapperService = mapperService;
             this.client = client;
         }
 
@@ -42,28 +45,21 @@ namespace FactorioModsManager.Services.Implementations
         {
             ProgramData programData = programDataService.GetProgramData();
 
+            int count = 0;
             await foreach (var entry in client.EnumerateAsync())
             {
+                if (++count > 10)
+                    break;
+
                 if (programData.Mods.TryGetValue(entry.Name, out var modData))
                 {
-                    modData.DownloadsCount = entry.DownloadsCount;
-                    modData.Owner = entry.Owner;
-                    modData.Title = entry.Title;
+                    mapperService.MapToModData(entry, modData);
                 }
                 else
                 {
-                    var releases = new List<ReleaseData>();
-                    programData.Mods.Add(entry.Name,
-                        new ModData(
-                            entry.Name,
-                            entry.Owner,
-                            releases,
-                            entry.Title,
-                            DateTime.Now)
-                        {
-                            DownloadsCount = entry.DownloadsCount,
-                            Summary = entry.Summary,
-                        });
+                    var entryFull = await client.GetResultEntryFullAsync(entry.Name);
+                    modData = mapperService.MapToModData(entryFull);
+                    programData.Mods.Add(modData.Name, modData);
                 }
             }
 
