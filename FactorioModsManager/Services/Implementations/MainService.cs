@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using FactorioModPortalClient;
 using FactorioModsManager.Infrastructure;
@@ -51,7 +54,7 @@ namespace FactorioModsManager.Services.Implementations
             int count = 0;
             await foreach (var entry in client.EnumerateAsync())
             {
-                if (++count > 10)
+                if (++count > 32)
                     break;
 
                 if (programData.Mods.TryGetValue(entry.Name, out var modData))
@@ -60,7 +63,7 @@ namespace FactorioModsManager.Services.Implementations
                     if (existingLatestRelease == null
                         || entry.LatestRelease.ReleasedAt != existingLatestRelease.ReleasedAt)
                     {
-                        SyncMod(await client.GetResultEntryFullAsync(entry.Name), modData);
+                        await SyncModAsync(await client.GetResultEntryFullAsync(entry.Name), modData);
                     }
                     else
                     {
@@ -71,7 +74,7 @@ namespace FactorioModsManager.Services.Implementations
                 {
                     var entryFull = await client.GetResultEntryFullAsync(entry.Name);
                     modData = mapperService.MapToModData(entryFull);
-                    SyncMod(entryFull, modData);
+                    await SyncModAsync(entryFull, modData);
                     programData.Mods.Add(modData.Name, modData);
                 }
             }
@@ -86,9 +89,13 @@ namespace FactorioModsManager.Services.Implementations
             mapperService.MapToModData(portalMod, modData);
         }
 
-        public void SyncMod(ResultEntryFull portalMod, ModData modData)
+        public async Task SyncModAsync(ResultEntryFull portalMod, ModData modData)
         {
             mapperService.MapToModData(portalMod, modData);
+
+            string modsPath = configService.GetConfig().GetFullModsPath();
+            if (!Directory.Exists(modsPath))
+                Directory.CreateDirectory(modsPath);
 
             HashSet<string> maintainedFactorioVersions = configService.GetConfig().MaintainedFactorioVersions
                 .Select(v => v.ToString())
@@ -103,8 +110,12 @@ namespace FactorioModsManager.Services.Implementations
             {
                 if (joined.release == null)
                 {
-                    // TODO: check if a zip for this release already exists
-                    // otherwise download
+                    string path = Path.Combine(modsPath, joined.portalRelease!.FileName);
+                    if (!File.Exists(path))
+                    {
+                        var bytes = await DownloadReleaseAsync(joined.portalRelease!);
+                        File.WriteAllBytes(path, bytes);
+                    }
 
                     var releaseData = mapperService.MapToReleaseData(joined.portalRelease!);
                     modData.Releases.Add(releaseData);
@@ -119,6 +130,15 @@ namespace FactorioModsManager.Services.Implementations
                     // TODO: should this delete the local release?
                 }
             }
+        }
+
+        public async Task<byte[]> DownloadReleaseAsync(Release release)
+        {
+            var bytes = await client.DownloadModAsByteArrayAsync(release);
+            string hash = Sha1Hash(bytes);
+            if (release.Sha1.ToLower() != hash)
+                throw new Exception($"Sha1 hash mismatch for {release.FileName}. Expected '{release.Sha1}' got '{hash}'.");
+            return bytes;
         }
 
         public void TryResolveModDependencys(ProgramData programData)
@@ -139,6 +159,18 @@ namespace FactorioModsManager.Services.Implementations
                     }
                 }
             }
+        }
+
+        public static string Sha1Hash(byte[] input)
+        {
+            using SHA1Managed sha1 = new SHA1Managed();
+            var hash = sha1.ComputeHash(input);
+            var sb = new StringBuilder(hash.Length * 2);
+
+            foreach (byte b in hash)
+                sb.Append(b.ToString("x2"));
+
+            return sb.ToString();
         }
     }
 }
