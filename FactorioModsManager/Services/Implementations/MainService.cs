@@ -60,10 +60,43 @@ namespace FactorioModsManager.Services.Implementations
                     var entryFull = await client.GetResultEntryFullAsync(entry.Name);
                     modData = mapperService.MapToModData(entryFull);
                     programData.Mods.Add(modData.Name, modData);
+
+                    foreach (var release in entryFull.Releases)
+                    {
+                        var releaseData = mapperService.MapToReleaseData(release);
+                        modData.Releases.Add(releaseData);
+
+                        foreach (var dependency in release.InfoJson.Dependencies.dependencies)
+                        {
+
+                        }
+                    }
                 }
             }
 
+            TryResolveModDependencys(programData);
+
             programDataService.SetProgramData(programData);
+        }
+
+        public void TryResolveModDependencys(ProgramData programData)
+        {
+            var mods = programData.Mods;
+
+            foreach (var mod in mods.Values)
+            {
+                foreach (var release in mod.Releases)
+                {
+                    foreach (var dependency in release.Dependencies)
+                    {
+                        if (dependency.TargetMod == null
+                            && mods.TryGetValue(dependency.GetTargetModName(), out var modData))
+                        {
+                            dependency.TargetMod = modData;
+                        }
+                    }
+                }
+            }
         }
     }
 }
