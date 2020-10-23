@@ -11,40 +11,25 @@ namespace FactorioModsManager.Infrastructure
     {
         public ushort major;
         public ushort minor;
-        public ushort patch;
+        public ushort? patch;
 
         public FactorioVersion()
         {
         }
 
-        public FactorioVersion(ushort major, ushort minor, ushort patch)
+        public FactorioVersion(ushort major, ushort minor, ushort? patch = null)
         {
             this.major = major;
             this.minor = minor;
             this.patch = patch;
         }
 
-        [OnSerializing]
-        public void OnSerializing(StreamingContext context)
+        private static readonly Regex VersionRegex = new Regex(@"^(\d+)\.(\d+)(?:\.(\d+))?$");
+        public static FactorioVersion Parse(string version, FactorioVersion? result = null)
         {
+            if (result == null)
+                result = new FactorioVersion();
 
-        }
-
-        [OnSerialized]
-        public void OnSerialized(StreamingContext context)
-        {
-
-        }
-
-        public XmlSchema GetSchema()
-        {
-            throw new NotImplementedException();
-        }
-
-        private static readonly Regex VersionRegex = new Regex(@"^(\d+)\.(\d+)\.(\d+)$");
-        public void ReadXml(XmlReader reader)
-        {
-            var version = reader.ReadElementContentAsString();
             var match = VersionRegex.Match(version);
             if (!match.Success)
                 throw new SerializationException($"Invalid version '{version}'.");
@@ -54,14 +39,26 @@ namespace FactorioModsManager.Infrastructure
                     return result;
                 throw new SerializationException($"Invalid version '{version}', {number} must be a {nameof(UInt16)}.");
             }
-            major = Parse(match.Groups[1].Value);
-            minor = Parse(match.Groups[2].Value);
-            patch = Parse(match.Groups[3].Value);
+            result.major = Parse(match.Groups[1].Value);
+            result.minor = Parse(match.Groups[2].Value);
+            result.patch = match.Groups[3].Success ? Parse(match.Groups[3].Value) : new ushort?();
+
+            return result;
+        }
+
+        public XmlSchema GetSchema()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ReadXml(XmlReader reader)
+        {
+            Parse(reader.ReadElementContentAsString(), this);
         }
 
         public void WriteXml(XmlWriter writer)
         {
-            writer.WriteString($"{major}.{minor}.{patch}");
+            writer.WriteString($"{major}.{minor}{(patch.HasValue ? $".{patch}" : "")}");
         }
     }
 }
