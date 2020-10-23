@@ -14,4 +14,10 @@
     <ProjectReference Include="..\FactorioModPortalClient\FactorioModPortalClient\FactorioModPortalClient.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="FactorioModsManagerConfigFilePath.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
