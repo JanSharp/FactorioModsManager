@@ -51,6 +51,26 @@ namespace FactorioModsManager.Infrastructure
             return $"{major}.{minor}{(patch.HasValue ? $".{patch}" : "")}";
         }
 
+        public bool Equals(FactorioVersion? other)
+        {
+            return other is object && major == other.major && minor == other.minor && patch == other.patch;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is FactorioVersion other)
+                return this.Equals(other);
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(major, minor, patch);
+        }
+
+        public static bool operator ==(FactorioVersion? left, FactorioVersion? right) => left?.Equals(right) ?? right is null;
+        public static bool operator !=(FactorioVersion? left, FactorioVersion? right) => !(left == right);
+
         public XmlSchema GetSchema()
         {
             throw new NotImplementedException();
