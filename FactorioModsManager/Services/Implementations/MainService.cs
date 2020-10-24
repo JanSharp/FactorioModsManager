@@ -52,24 +52,32 @@ namespace FactorioModsManager.Services.Implementations
                 return;
 
             ProgramData programData = programDataService.GetProgramData();
+            DateTime lastSaveTime = DateTime.Now;
 
-            foreach (var mod in programData.Mods.Values)
-                foreach (var release in mod.Releases)
-                    if (release.IsMaintained)
-                        Console.WriteLine(release.GetFileName());
+            int attemptedSaveCount = 0;
+            void SaveChanges()
+            {
+                // only save every 5 minutes, but also only if there have been 16 attempts
+                // to save, which indicates that something changed 16 times
+                ++attemptedSaveCount;
+                if (attemptedSaveCount >= 16
+                    && (DateTime.Now - lastSaveTime).Minutes >= 5)
+                {
+                    attemptedSaveCount = 0;
+                    programDataService.SetProgramData(programData);
+                    lastSaveTime = DateTime.Now;
+                }
+            }
 
-            int count = 0;
             await foreach (var entry in client.EnumerateAsync())
             {
-                if (++count > 100)
-                    break;
-
                 if (programData.Mods.TryGetValue(entry.Name, out var modData))
                 {
                     if (modData.LatestRelease == null
                         || entry.LatestRelease.ReleasedAt != modData.LatestRelease.ReleasedAt)
                     {
                         SyncMod(entry, await client.GetResultEntryFullAsync(entry.Name), modData);
+                        SaveChanges();
                     }
                     else
                     {
@@ -82,6 +90,7 @@ namespace FactorioModsManager.Services.Implementations
                     modData = mapperService.MapToModData(entryFull);
                     SyncMod(entry, entryFull, modData);
                     programData.Mods.Add(modData.Name, modData);
+                    SaveChanges();
                 }
             }
 
