@@ -14,8 +14,9 @@ namespace FactorioModsManager.Infrastructure
 
         }
 
-        public ReleaseData(string downloadUrl, FactorioVersion factorioVersion, List<ModDependency> dependencies, DateTime releasedAt, FactorioVersion version, string sha1)
+        public ReleaseData(ModData mod, string downloadUrl, FactorioVersion factorioVersion, List<ModDependency> dependencies, DateTime releasedAt, FactorioVersion version, string sha1)
         {
+            Mod = mod;
             DownloadUrl = downloadUrl;
             FactorioVersion = factorioVersion;
             Dependencies = dependencies;
@@ -23,6 +24,9 @@ namespace FactorioModsManager.Infrastructure
             Version = version;
             Sha1 = sha1;
         }
+
+        [DataMember(/*IsRequired = true*/)]
+        public ModData Mod { get; set; }
 
         /// <summary>
         /// Path to download for a mod. starts with "/download" and does not include a full url.
@@ -59,5 +63,14 @@ namespace FactorioModsManager.Infrastructure
         /// </summary>
         [DataMember(/*IsRequired = true*/)]
         public string Sha1 { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>The file name of the release. Follows the pattern "{name}_{version}.zip"</returns>
+        public string GetFileName()
+        {
+            return $"{Mod.Name}_{Version}.zip";
+        }
     }
 }

@@ -57,11 +57,12 @@ namespace FactorioModsManager.Services.Implementations
         /// <param name="release"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        public ReleaseData MapToReleaseData(Release release, ReleaseData? result = null)
+        public ReleaseData MapToReleaseData(ModData mod, Release release, ReleaseData? result = null)
         {
             if (result == null)
                 result = new ReleaseData();
 
+            result.Mod = mod;
             result.DownloadUrl = release.DownloadUrl;
             result.FactorioVersion = FactorioVersion.Parse(release.InfoJson.FactorioVersion);
             result.Dependencies ??= new List<ModDependency>();

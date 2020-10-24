@@ -117,7 +117,7 @@ namespace FactorioModsManager.Services.Implementations
                         File.WriteAllBytes(path, bytes);
                     }
 
-                    var releaseData = mapperService.MapToReleaseData(joined.portalRelease!);
+                    var releaseData = mapperService.MapToReleaseData(modData, joined.portalRelease!);
                     modData.Releases.Add(releaseData);
 
                     foreach (var dependency in joined.portalRelease!.InfoJson.Dependencies.dependencies)
@@ -127,7 +127,12 @@ namespace FactorioModsManager.Services.Implementations
                 }
                 else if (joined.portalRelease == null) // doesn't exist in the portal anymore
                 {
-                    // TODO: should this delete the local release?
+                    // TODO: maybe add an option for this not to delete?
+                    string path = Path.Combine(modsPath, joined.release!.GetFileName());
+                    if (File.Exists(path))
+                    {
+                        File.Delete(path);
+                    }
                 }
             }
         }
