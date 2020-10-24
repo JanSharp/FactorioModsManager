@@ -79,6 +79,8 @@ namespace FactorioModsManager.Services.Implementations
                 }
             }
 
+            // TODO: detect deleted mods
+
             TryResolveModDependencys(programData);
 
             programDataService.SetProgramData(programData);
