@@ -72,6 +72,10 @@ namespace FactorioModsManager.Services.Implementations
                     dataPath: "Data"
                     );
 
+                config.MinMaintainedReleases = 3;
+                config.MaxMaintainedReleases = 20;
+                config.MaintainedDays = 100;
+
                 WriteConfigFile();
             }
         }

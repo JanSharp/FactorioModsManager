@@ -54,7 +54,7 @@ namespace FactorioModsManager.Services.Implementations
             int count = 0;
             await foreach (var entry in client.EnumerateAsync())
             {
-                if (++count > 32)
+                if (++count > 100)
                     break;
 
                 if (programData.Mods.TryGetValue(entry.Name, out var modData))
@@ -101,10 +101,38 @@ namespace FactorioModsManager.Services.Implementations
                 .Select(v => v.ToString())
                 .ToHashSet();
 
-            var portalMaintainedReleases = portalMod.Releases
-                .Where(r => maintainedFactorioVersions.Contains(r.InfoJson.FactorioVersion));
+            int? maintainedDays = (int?)configService.GetConfig().MaintainedDays;
+            int? minMaintainedReleases = (int?)configService.GetConfig().MinMaintainedReleases;
+            int? maxMaintainedReleases = (int?)configService.GetConfig().MaxMaintainedReleases;
 
-            foreach (var joined in modData.Releases.FullGroupJoin(portalMaintainedReleases,
+            IEnumerable<Release> EnumerateReleasesFiltered()
+            {
+                int count = 0;
+                foreach (var release in portalMod.Releases.OrderByDescending(r => r.ReleasedAt))
+                {
+                    ++count;
+
+                    if (minMaintainedReleases.HasValue && count <= minMaintainedReleases.Value)
+                    {
+                        yield return release;
+                        continue;
+                    }
+
+                    if (maxMaintainedReleases.HasValue && count > maxMaintainedReleases.Value)
+                    {
+                        break;
+                    }
+
+                    if ((DateTime.Now - release.ReleasedAt).Days > maintainedDays)
+                    {
+                        break;
+                    }
+
+                    yield return release;
+                }
+            }
+
+            foreach (var joined in modData.Releases.FullGroupJoin(EnumerateReleasesFiltered(),
                 release => release.Version.ToString(), portalRelease => portalRelease.Version,
                 (key, releases, portalReleases) => (release: releases.SingleOrDefault(), portalRelease: portalReleases.SingleOrDefault())))
             {

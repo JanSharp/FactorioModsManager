@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
 
@@ -43,6 +44,12 @@ namespace FactorioModsManager.Infrastructure
 
         public string DataPath { get; set; }
         public string GetFullDataPath() => GetFullPath(DataPath);
+
+        public uint? MinMaintainedReleases { get; set; }
+
+        public uint? MaxMaintainedReleases { get; set; }
+
+        public uint? MaintainedDays { get; set; }
 
         private string GetFullPath(string path)
         {
