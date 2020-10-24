@@ -80,7 +80,7 @@ During execution a couple of things happen:
 
 ## Other platforms
 
-I have no idea. Read this readme and use some kind of C# 8 .NET Core 3.0 compiler to
+I have no idea. Read this readme and use some kind of C# 8 .NET Core 3.1 compiler to
 compile the source code. Once i learn some stuff about linux i may add more instructions.
 
 # Config File
