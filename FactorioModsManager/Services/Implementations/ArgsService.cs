@@ -23,6 +23,10 @@ namespace FactorioModsManager.Services.Implementations
                         programArgs.ConfigFilePath = args[i];
                         break;
 
+                    case "--create-config":
+                        programArgs.CreateConfig = true;
+                        break;
+
                     default:
                         throw new Exception($"Unexpected cmd arg '{args[i]}'.");
                 }
