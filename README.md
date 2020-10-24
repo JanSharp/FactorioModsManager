@@ -36,7 +36,7 @@ path.
 
 `--create-config` tells the program to only create a default config file, if it
 doesn't already exist, and not do anything else. It is recommended to do this for
-the first time running the program, see `Initial setup` at the bottom.
+the first time running the program, see **Installation** below.
 
 ## Execution process
 
@@ -59,7 +59,7 @@ During execution a couple of things happen:
   * The releases marked as not maintained should not exist in `<ModsPath>`.
     If they do, the program deletes them
 
-# Initial setup
+# Installation
 
 ## Windows
 
@@ -85,4 +85,5 @@ compile the source code. Once i learn some stuff about linux i may add more inst
 
 # Cloning
 
-When cloning the repository, make sure to run `git init submodules` and `git update submodules`
+When cloning or pulling the repository,
+make sure to run `git submodule init` and `git submodule update`
