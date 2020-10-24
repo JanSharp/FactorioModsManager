@@ -73,6 +73,8 @@ During execution a couple of things happen:
 * Launch the program with the argument `--create-config`
 * The default config file has now been created and you may configure it however you like
   (There is currently no documentation outside of this file for it's syntax and behavior)
+* Make sure to supply `<FactorioUserName>` and `<FactorioUserToken>`. The program currently
+  throws a generic `NotImplementedException` if they are invalid
 * For future executions, don't provide the argument `--create-config` if you actually
   want it to do something
 
