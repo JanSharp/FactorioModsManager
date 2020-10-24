@@ -83,7 +83,21 @@ During execution a couple of things happen:
 I have no idea. Read this readme and use some kind of C# 8 .NET Core 3.0 compiler to
 compile the source code. Once i learn some stuff about linux i may add more instructions.
 
-# Cloning
+# Config File
+
+I plan on adding proper documentation for this, but for now just read the default file,
+it's pretty self explanatory. Just a few notes:
+
+Your User Token can be found at https://factorio.com/profile **and is sensitive data**.
+
+`<MaxApiRequestsPerMinute>` Is used to not flood the portal api with requests. I don't
+know what a reasonable number is, but for testing i had it set to 300 and it was fine.
+Be reasonable with it :D
+
+`<ModsPath>` and `<DataPath>` can be absolute or relative paths.
+If they are relative, they are relative to the config file.
+
+# Git Submodules
 
 When cloning or pulling the repository,
 make sure to run `git submodule init` and `git submodule update`
