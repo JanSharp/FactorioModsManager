@@ -60,10 +60,22 @@ namespace FactorioModsManager.Services.Implementations
                     
                     configVersion: 1,
                     
-                    maintainedFactorioVersions: new List<FactorioVersion>()
+                    maintainedFactorioVersions: new List<MaintainedVersionConfig>()
                     {
-                        new FactorioVersion(1, 0),
-                        new FactorioVersion(0, 18),
+                        new MaintainedVersionConfig(new FactorioVersion(1, 0))
+                        {
+                            MinMaintainedReleases = 2,
+                            MaxMaintainedReleases = 5,
+                            MaintainedDays = 30,
+                            DeleteNoLongerMaintainedReleases = false,
+                        },
+                        new MaintainedVersionConfig(new FactorioVersion(0, 18))
+                        {
+                            MinMaintainedReleases = 0,
+                            MaxMaintainedReleases = 2,
+                            MaintainedDays = 200,
+                            DeleteNoLongerMaintainedReleases = false,
+                        },
                     },
                     factorioUserName: "undefined",
                     factorioUserToken: "undefined",
@@ -71,10 +83,6 @@ namespace FactorioModsManager.Services.Implementations
                     modsPath: "Mods",
                     dataPath: "Data"
                     );
-
-                config.MinMaintainedReleases = 3;
-                config.MaxMaintainedReleases = 20;
-                config.MaintainedDays = 100;
 
                 WriteConfigFile();
             }

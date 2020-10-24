@@ -48,6 +48,9 @@ namespace FactorioModsManager.Infrastructure
         [DataMember(/*IsRequired = true*/)]
         public List<ReleaseData> Releases { get; set; }
 
+        [DataMember(IsRequired = false)]
+        public ReleaseData? LatestRelease { get; set; }
+
         /// <summary>
         /// A shorter mod description.
         /// </summary>
@@ -89,10 +92,5 @@ namespace FactorioModsManager.Infrastructure
         /// </summary>
         [DataMember(IsRequired = false)]
         public string? Homepage { get; set; }
-
-        public ReleaseData? GetLatestReleaseData()
-        {
-            return Releases.OrderByDescending(r => r.ReleasedAt).FirstOrDefault();
-        }
     }
 }

@@ -64,6 +64,9 @@ namespace FactorioModsManager.Infrastructure
         [DataMember(/*IsRequired = true*/)]
         public string Sha1 { get; set; }
 
+        [DataMember(/*IsRequired = true*/)]
+        public bool IsMaintained { get; set; }
+
         /// <summary>
         /// 
         /// </summary>

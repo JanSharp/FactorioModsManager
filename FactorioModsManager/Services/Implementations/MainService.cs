@@ -2,29 +2,28 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using FactorioModPortalClient;
 using FactorioModsManager.Infrastructure;
-
-using static MoreLinq.Extensions.FullGroupJoinExtension;
 
 namespace FactorioModsManager.Services.Implementations
 {
     public class MainService : IMainService
     {
+        private readonly IArgsService argsService;
         private readonly IConfigService configService;
         private readonly IProgramDataService programDataService;
         private readonly IMapperService mapperService;
         private readonly IModPortalClient client;
 
         public MainService(
+            IArgsService argsService,
             IConfigService configService,
             IProgramDataService programDataService,
             IMapperService mapperService,
             IModPortalClient client)
         {
+            this.argsService = argsService;
             this.configService = configService;
             this.programDataService = programDataService;
             this.mapperService = mapperService;
@@ -49,7 +48,15 @@ namespace FactorioModsManager.Services.Implementations
 
         public async Task RunAsync()
         {
+            if (argsService.GetArgs().CreateConfig)
+                return;
+
             ProgramData programData = programDataService.GetProgramData();
+
+            foreach (var mod in programData.Mods.Values)
+                foreach (var release in mod.Releases)
+                    if (release.IsMaintained)
+                        Console.WriteLine(release.GetFileName());
 
             int count = 0;
             await foreach (var entry in client.EnumerateAsync())
@@ -59,11 +66,10 @@ namespace FactorioModsManager.Services.Implementations
 
                 if (programData.Mods.TryGetValue(entry.Name, out var modData))
                 {
-                    var existingLatestRelease = modData.GetLatestReleaseData();
-                    if (existingLatestRelease == null
-                        || entry.LatestRelease.ReleasedAt != existingLatestRelease.ReleasedAt)
+                    if (modData.LatestRelease == null
+                        || entry.LatestRelease.ReleasedAt != modData.LatestRelease.ReleasedAt)
                     {
-                        await SyncModAsync(await client.GetResultEntryFullAsync(entry.Name), modData);
+                        SyncMod(entry, await client.GetResultEntryFullAsync(entry.Name), modData);
                     }
                     else
                     {
@@ -74,7 +80,7 @@ namespace FactorioModsManager.Services.Implementations
                 {
                     var entryFull = await client.GetResultEntryFullAsync(entry.Name);
                     modData = mapperService.MapToModData(entryFull);
-                    await SyncModAsync(entryFull, modData);
+                    SyncMod(entry, entryFull, modData);
                     programData.Mods.Add(modData.Name, modData);
                 }
             }
@@ -84,6 +90,20 @@ namespace FactorioModsManager.Services.Implementations
             TryResolveModDependencys(programData);
 
             programDataService.SetProgramData(programData);
+
+
+
+            string modsPath = configService.GetConfig().GetFullModsPath();
+            if (!Directory.Exists(modsPath))
+                Directory.CreateDirectory(modsPath);
+
+            var maintainedVersions = configService.GetConfig().MaintainedFactorioVersions
+                .ToDictionary(v => v.FactorioVersion);
+
+            foreach (var mod in programData.Mods.Values)
+                await SyncMaintainedReleasesAsync(mod, maintainedVersions);
+
+            programDataService.SetProgramData(programData);
         }
 
         public void SyncModPartial(ResultEntry portalMod, ModData modData)
@@ -91,89 +111,123 @@ namespace FactorioModsManager.Services.Implementations
             mapperService.MapToModData(portalMod, modData);
         }
 
-        public async Task SyncModAsync(ResultEntryFull portalMod, ModData modData)
+        public void SyncMod(ResultEntry entry, ResultEntryFull portalMod, ModData modData)
         {
             mapperService.MapToModData(portalMod, modData);
 
-            string modsPath = configService.GetConfig().GetFullModsPath();
-            if (!Directory.Exists(modsPath))
-                Directory.CreateDirectory(modsPath);
+            var existingReleasesMap = modData.Releases.ToDictionary(r => r.Version.ToString());
 
-            HashSet<string> maintainedFactorioVersions = configService.GetConfig().MaintainedFactorioVersions
-                .Select(v => v.ToString())
-                .ToHashSet();
+            modData.Releases = new List<ReleaseData>(portalMod.Releases.Count);
 
-            int? maintainedDays = (int?)configService.GetConfig().MaintainedDays;
-            int? minMaintainedReleases = (int?)configService.GetConfig().MinMaintainedReleases;
-            int? maxMaintainedReleases = (int?)configService.GetConfig().MaxMaintainedReleases;
-
-            IEnumerable<Release> EnumerateReleasesFiltered()
+            foreach (var portalRelease in portalMod.Releases.OrderByDescending(r => r.ReleasedAt))
             {
-                int count = 0;
-                foreach (var release in portalMod.Releases.OrderByDescending(r => r.ReleasedAt))
+                ReleaseData releaseData;
+                if (existingReleasesMap.TryGetValue(portalRelease.Version, out var release))
+                    releaseData = release;
+                else
                 {
-                    ++count;
-
-                    if (minMaintainedReleases.HasValue && count <= minMaintainedReleases.Value)
-                    {
-                        yield return release;
-                        continue;
-                    }
-
-                    if (maxMaintainedReleases.HasValue && count > maxMaintainedReleases.Value)
-                    {
-                        break;
-                    }
-
-                    if ((DateTime.Now - release.ReleasedAt).Days > maintainedDays)
-                    {
-                        break;
-                    }
-
-                    yield return release;
-                }
-            }
-
-            foreach (var joined in modData.Releases.FullGroupJoin(EnumerateReleasesFiltered(),
-                release => release.Version.ToString(), portalRelease => portalRelease.Version,
-                (key, releases, portalReleases) => (release: releases.SingleOrDefault(), portalRelease: portalReleases.SingleOrDefault())))
-            {
-                if (joined.release == null)
-                {
-                    string path = Path.Combine(modsPath, joined.portalRelease!.FileName);
-                    if (!File.Exists(path))
-                    {
-                        var bytes = await DownloadReleaseAsync(joined.portalRelease!);
-                        File.WriteAllBytes(path, bytes);
-                    }
-
-                    var releaseData = mapperService.MapToReleaseData(modData, joined.portalRelease!);
-                    modData.Releases.Add(releaseData);
-
-                    foreach (var dependency in joined.portalRelease!.InfoJson.Dependencies.dependencies)
+                    releaseData = mapperService.MapToReleaseData(modData, portalRelease);
+                    foreach (var dependency in portalRelease.InfoJson.Dependencies.dependencies)
                     {
                         releaseData.Dependencies.Add(new ModDependency(releaseData, dependency));
                     }
                 }
-                else if (joined.portalRelease == null) // doesn't exist in the portal anymore
+                modData.Releases.Add(releaseData);
+                if (releaseData.ReleasedAt == entry.LatestRelease.ReleasedAt)
+                    modData.LatestRelease = releaseData;
+            }
+        }
+
+        public async Task SyncMaintainedReleasesAsync(
+            ModData mod,
+            Dictionary<FactorioVersion, MaintainedVersionConfig> maintainedVersions)
+        {
+            foreach (var versionGroup in mod.Releases.GroupBy(r => r.FactorioVersion))
+            {
+                if (maintainedVersions.TryGetValue(versionGroup.Key, out var maintainedVersion))
                 {
-                    // TODO: maybe add an option for this not to delete?
-                    string path = Path.Combine(modsPath, joined.release!.GetFileName());
-                    if (File.Exists(path))
+                    int count = 0;
+                    bool noMoreMaintainedReleases = false;
+                    bool shouldDelete = maintainedVersion.DeleteNoLongerMaintainedReleases;
+
+                    foreach (var release in versionGroup) // releases are stored ordered by ReleasedAt descending
                     {
-                        File.Delete(path);
+                        if (noMoreMaintainedReleases)
+                        {
+                            EnsureReleaseIsNotMaintained(release, shouldDelete);
+                            continue;
+                        }
+
+                        ++count;
+
+                        if (maintainedVersion.MinMaintainedReleases.HasValue
+                            && count <= maintainedVersion.MinMaintainedReleases.Value)
+                        {
+                            await EnsureReleaseIsMaintainedAsync(release);
+                            continue;
+                        }
+
+                        if (maintainedVersion.MaxMaintainedReleases.HasValue
+                            && count > maintainedVersion.MaxMaintainedReleases.Value)
+                        {
+                            EnsureReleaseIsNotMaintained(release, shouldDelete);
+                            noMoreMaintainedReleases = true;
+                            continue;
+                        }
+
+                        if (maintainedVersion.MaintainedDays.HasValue
+                            && (DateTime.Now - release.ReleasedAt).Days > (int)maintainedVersion.MaintainedDays.Value)
+                        {
+                            EnsureReleaseIsNotMaintained(release, shouldDelete);
+                            noMoreMaintainedReleases = true;
+                            continue;
+                        }
+
+                        await EnsureReleaseIsMaintainedAsync(release);
                     }
                 }
             }
         }
 
-        public async Task<byte[]> DownloadReleaseAsync(Release release)
+        public async Task EnsureReleaseIsMaintainedAsync(ReleaseData release)
         {
-            var bytes = await client.DownloadModAsByteArrayAsync(release);
-            string hash = Sha1Hash(bytes);
-            if (release.Sha1.ToLower() != hash)
-                throw new Exception($"Sha1 hash mismatch for {release.FileName}. Expected '{release.Sha1}' got '{hash}'.");
-            return bytes;
+            if (release.IsMaintained)
+                return;
+
+            string modsPath = configService.GetConfig().GetFullModsPath();
+            string path = Path.Combine(modsPath, release.GetFileName());
+            if (!File.Exists(path))
+            {
+                var bytes = await DownloadReleaseAsync(release);
+                File.WriteAllBytes(path, bytes);
+            }
+            release.IsMaintained = true;
+        }
+
+        public void EnsureReleaseIsNotMaintained(ReleaseData release, bool shouldDelete)
+        {
+            if (!release.IsMaintained)
+                return;
+
+            if (shouldDelete)
+            {
+                string modsPath = configService.GetConfig().GetFullModsPath();
+                string path = Path.Combine(modsPath, release.GetFileName());
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+            }
+            release.IsMaintained = false;
+        }
+
+        public Task<byte[]> DownloadReleaseAsync(ReleaseData release)
+        {
+            return client.DownloadModAsByteArrayAsync(new Release()
+            {
+                DownloadUrl = release.DownloadUrl,
+                Sha1 = release.Sha1,
+            });
         }
 
         public void TryResolveModDependencys(ProgramData programData)
@@ -194,18 +248,6 @@ namespace FactorioModsManager.Services.Implementations
                     }
                 }
             }
-        }
-
-        public static string Sha1Hash(byte[] input)
-        {
-            using SHA1Managed sha1 = new SHA1Managed();
-            var hash = sha1.ComputeHash(input);
-            var sb = new StringBuilder(hash.Length * 2);
-
-            foreach (byte b in hash)
-                sb.Append(b.ToString("x2"));
-
-            return sb.ToString();
         }
     }
 }

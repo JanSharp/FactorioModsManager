@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
 
@@ -14,7 +13,7 @@ namespace FactorioModsManager.Infrastructure
 
         }
 
-        public Config(string? configPath, int configVersion, List<FactorioVersion> maintainedFactorioVersions, string factorioUserName, string factorioUserToken, uint maxApiRequestsPerMinute, string modsPath, string dataPath)
+        public Config(string? configPath, int configVersion, List<MaintainedVersionConfig> maintainedFactorioVersions, string factorioUserName, string factorioUserToken, uint maxApiRequestsPerMinute, string modsPath, string dataPath)
         {
             this.configPath = configPath;
             ConfigVersion = configVersion;
@@ -31,7 +30,7 @@ namespace FactorioModsManager.Infrastructure
 
         public int ConfigVersion { get; set; }
 
-        public List<FactorioVersion> MaintainedFactorioVersions { get; set; }
+        public List<MaintainedVersionConfig> MaintainedFactorioVersions { get; set; }
 
         public string FactorioUserName { get; set; }
 
@@ -44,12 +43,6 @@ namespace FactorioModsManager.Infrastructure
 
         public string DataPath { get; set; }
         public string GetFullDataPath() => GetFullPath(DataPath);
-
-        public uint? MinMaintainedReleases { get; set; }
-
-        public uint? MaxMaintainedReleases { get; set; }
-
-        public uint? MaintainedDays { get; set; }
 
         private string GetFullPath(string path)
         {
