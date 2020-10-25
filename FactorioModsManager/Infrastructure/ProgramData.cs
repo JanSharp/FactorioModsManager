@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace FactorioModsManager.Infrastructure
 {
     [DataContract]
-    public class ProgramData
+    public class ProgramData : IExtensibleDataObject
     {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public ProgramData()
@@ -19,9 +19,8 @@ namespace FactorioModsManager.Infrastructure
         }
 
         [DataMember(/*IsRequired = true*/)]
-        public int ProgramDataVersion { get; set; } = 1;
-
-        [DataMember(/*IsRequired = true*/)]
         public Dictionary<string, ModData> Mods { get; set; }
+
+        public ExtensionDataObject? ExtensionData { get; set; }
     }
 }

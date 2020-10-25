@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 namespace FactorioModsManager.Infrastructure
 {
     [DataContract(IsReference = true)]
-    public class ModDependency
+    public class ModDependency : IExtensibleDataObject
     {
         public ModDependency(ReleaseData sourceRelease, ModData targetMod, ModDependencyType dependencyType)
         {
@@ -90,5 +90,7 @@ namespace FactorioModsManager.Infrastructure
 
         [DataMember(/*IsRequired = true*/)]
         public ModDependencyOperator Operator { get; set; } = ModDependencyOperator.None;
+
+        public ExtensionDataObject? ExtensionData { get; set; }
     }
 }
