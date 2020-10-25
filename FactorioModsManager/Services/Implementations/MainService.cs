@@ -51,18 +51,26 @@ namespace FactorioModsManager.Services.Implementations
             if (argsService.GetArgs().CreateConfig)
                 return;
 
+            Console.WriteLine("Syncronizing with mod portal...");
+
             ProgramData programData = programDataService.GetProgramData();
             DateTime lastSaveTime = DateTime.Now;
 
+            Console.WriteLine($"Loaded {programData.Mods.Count} mods from data file.");
+
             int attemptedSaveCount = 0;
-            void SaveChanges()
+            void SaveChanges(bool bypassConditions = false)
             {
-                // only save every 5 minutes, but also only if there have been 16 attempts
-                // to save, which indicates that something changed 16 times
+                // only save every 5 minutes, but also only if there have been 32 attempts
+                // to save, which indicates that something changed 32 times
                 ++attemptedSaveCount;
-                if (attemptedSaveCount >= 16
-                    && (DateTime.Now - lastSaveTime).Minutes >= 5)
+                if (bypassConditions
+                    || (
+                        attemptedSaveCount >= 32
+                        && (DateTime.Now - lastSaveTime).Minutes >= 5
+                    ))
                 {
+                    Console.WriteLine($"Saving {attemptedSaveCount} changed or added mods.");
                     attemptedSaveCount = 0;
                     programDataService.SetProgramData(programData);
                     lastSaveTime = DateTime.Now;
@@ -77,6 +85,7 @@ namespace FactorioModsManager.Services.Implementations
                         || entry.LatestRelease.ReleasedAt != modData.LatestRelease.ReleasedAt)
                     {
                         SyncMod(entry, await client.GetResultEntryFullAsync(entry.Name), modData);
+                        Console.WriteLine($"Changed {entry.Name}.");
                         SaveChanges();
                     }
                     else
@@ -90,17 +99,22 @@ namespace FactorioModsManager.Services.Implementations
                     modData = mapperService.MapToModData(entryFull);
                     SyncMod(entry, entryFull, modData);
                     programData.Mods.Add(modData.Name, modData);
+                    Console.WriteLine($"Added   {entry.Name}.");
                     SaveChanges();
                 }
             }
 
             // TODO: detect deleted mods
 
+            Console.WriteLine("Attempting to resolve mod dependencies.");
             TryResolveModDependencys(programData);
 
-            programDataService.SetProgramData(programData);
+            if (attemptedSaveCount > 0)
+                SaveChanges(bypassConditions: true);
 
 
+
+            Console.Write("Determining which mods should be maintained. Downloading and deleting accordingly.");
 
             string modsPath = configService.GetConfig().GetFullModsPath();
             if (!Directory.Exists(modsPath))
@@ -218,10 +232,12 @@ namespace FactorioModsManager.Services.Implementations
             string path = Path.Combine(modsPath, release.GetFileName());
             if (!File.Exists(path))
             {
+                Console.WriteLine($"Downloading {release.GetFileName()}.");
                 var bytes = await DownloadReleaseAsync(release);
                 File.WriteAllBytes(path, bytes);
             }
             release.IsMaintained = true;
+            Console.WriteLine($"{release.GetFileName()} is not maintained.");
         }
 
         public void EnsureReleaseIsNotMaintained(ReleaseData release, bool shouldDelete)
@@ -235,10 +251,12 @@ namespace FactorioModsManager.Services.Implementations
                 string path = Path.Combine(modsPath, release.GetFileName());
                 if (File.Exists(path))
                 {
+                    Console.WriteLine($"Deleting {release.GetFileName()}.");
                     File.Delete(path);
                 }
             }
             release.IsMaintained = false;
+            Console.WriteLine($"{release.GetFileName()} is no longer maintained.");
         }
 
         public Task<byte[]> DownloadReleaseAsync(ReleaseData release)
