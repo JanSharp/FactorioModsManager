@@ -136,9 +136,12 @@ namespace FactorioModsManager.Services.Implementations
                 else
                 {
                     releaseData = mapperService.MapToReleaseData(modData, portalRelease);
-                    foreach (var dependency in portalRelease.InfoJson.Dependencies.dependencies)
+                    if (portalRelease.InfoJson.Dependencies != null)
                     {
-                        releaseData.Dependencies.Add(new ModDependency(releaseData, dependency));
+                        foreach (var dependency in portalRelease.InfoJson.Dependencies.dependencies)
+                        {
+                            releaseData.Dependencies.Add(new ModDependency(releaseData, dependency));
+                        }
                     }
                 }
                 modData.Releases.Add(releaseData);
