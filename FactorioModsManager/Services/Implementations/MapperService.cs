@@ -9,7 +9,7 @@ namespace FactorioModsManager.Services.Implementations
     public class MapperService : IMapperService
     {
         /// <summary>
-        /// <para>does not map <see cref="ModData.Releases"/></para>
+        /// <para>does not map <see cref="ModData.GroupedReleases"/></para>
         /// </summary>
         /// <param name="entry"></param>
         /// <param name="result"></param>
@@ -26,7 +26,7 @@ namespace FactorioModsManager.Services.Implementations
         }
 
         /// <summary>
-        /// <para>does not map <see cref="ModData.Releases"/></para>
+        /// <para>does not map <see cref="ModData.GroupedReleases"/></para>
         /// </summary>
         /// <param name="entry"></param>
         /// <param name="result"></param>
@@ -39,7 +39,7 @@ namespace FactorioModsManager.Services.Implementations
             result.DownloadsCount = entry.DownloadsCount;
             result.Name = entry.Name;
             result.Owner = entry.Owner;
-            result.Releases ??= new List<ReleaseData>();
+            result.GroupedReleases ??= new Dictionary<FactorioVersion, List<ReleaseData>>();
             result.Summary = entry.Summary;
             result.Title = entry.Title;
             result.Changelog = entry.Changelog;
@@ -64,7 +64,7 @@ namespace FactorioModsManager.Services.Implementations
 
             result.Mod = mod;
             result.DownloadUrl = release.DownloadUrl;
-            result.FactorioVersion = FactorioVersion.Parse(release.InfoJson.FactorioVersion);
+            result.FactorioVersion = FactorioVersion.Parse(release.InfoJson.FactorioVersion, readPatch: false);
             result.Dependencies ??= new List<ModDependency>();
             result.ReleasedAt = release.ReleasedAt;
             result.Version = FactorioVersion.Parse(release.Version);

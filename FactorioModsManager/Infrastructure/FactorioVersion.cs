@@ -7,7 +7,7 @@ using System.Xml.Serialization;
 
 namespace FactorioModsManager.Infrastructure
 {
-    public class FactorioVersion : IXmlSerializable
+    public class FactorioVersion : IXmlSerializable, IComparable<FactorioVersion>, IComparable
     {
         public ushort major;
         public ushort minor;
@@ -25,7 +25,7 @@ namespace FactorioModsManager.Infrastructure
         }
 
         private static readonly Regex VersionRegex = new Regex(@"^(\d+)\.(\d+)(?:\.(\d+))?$");
-        public static FactorioVersion Parse(string version, FactorioVersion? result = null)
+        public static FactorioVersion Parse(string version, FactorioVersion? result = null, bool readPatch = true)
         {
             if (result == null)
                 result = new FactorioVersion();
@@ -41,7 +41,7 @@ namespace FactorioModsManager.Infrastructure
             }
             result.major = Parse(match.Groups[1].Value);
             result.minor = Parse(match.Groups[2].Value);
-            result.patch = match.Groups[3].Success ? Parse(match.Groups[3].Value) : new ushort?();
+            result.patch = readPatch && match.Groups[3].Success ? Parse(match.Groups[3].Value) : new ushort?();
 
             return result;
         }
@@ -84,6 +84,35 @@ namespace FactorioModsManager.Infrastructure
         public void WriteXml(XmlWriter writer)
         {
             writer.WriteString(this.ToString());
+        }
+
+        public int CompareTo(object? obj)
+        {
+            if (obj is FactorioVersion other)
+            {
+                return this.CompareTo(other);
+            }
+            throw new Exception($"Trying to compare a {nameof(FactorioVersion)} to an object athat is not of the same type.");
+        }
+
+        public int CompareTo(FactorioVersion? other)
+        {
+            if (other is null)
+                return 1;
+            int result = major.CompareTo(other.major);
+            if (result != 0)
+                return result;
+            result = minor.CompareTo(other.minor);
+            if (result != 0)
+                return result;
+            if (patch.HasValue)
+                if (other.patch.HasValue)
+                    return patch.Value.CompareTo(other.patch.Value);
+                else
+                    return 1;
+            if (other.patch.HasValue)
+                return -1;
+            return 0;
         }
     }
 }

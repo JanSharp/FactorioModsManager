@@ -124,9 +124,11 @@ namespace FactorioModsManager.Services.Implementations
         {
             mapperService.MapToModData(portalMod, modData);
 
-            var existingReleasesMap = modData.Releases.ToDictionary(r => r.Version.ToString());
+            var existingReleasesMap = modData.GroupedReleases
+                .SelectMany(g => g.Value)
+                .ToDictionary(r => r.Version.ToString());
 
-            modData.Releases = new List<ReleaseData>(portalMod.Releases.Count);
+            modData.GroupedReleases = new Dictionary<FactorioVersion, List<ReleaseData>>();
 
             foreach (var portalRelease in portalMod.Releases.OrderByDescending(r => r.ReleasedAt))
             {
@@ -144,7 +146,13 @@ namespace FactorioModsManager.Services.Implementations
                         }
                     }
                 }
-                modData.Releases.Add(releaseData);
+
+                if (!modData.GroupedReleases.TryGetValue(releaseData.FactorioVersion, out var releases))
+                {
+                    releases = new List<ReleaseData>();
+                    modData.GroupedReleases.Add(releaseData.FactorioVersion, releases);
+                }
+                releases.Add(releaseData);
                 if (releaseData.ReleasedAt == entry.LatestRelease.ReleasedAt)
                     modData.LatestRelease = releaseData;
             }
@@ -154,7 +162,7 @@ namespace FactorioModsManager.Services.Implementations
             ModData mod,
             Dictionary<FactorioVersion, MaintainedVersionConfig> maintainedVersions)
         {
-            foreach (var versionGroup in mod.Releases.GroupBy(r => r.FactorioVersion))
+            foreach (var versionGroup in mod.GroupedReleases)
             {
                 if (maintainedVersions.TryGetValue(versionGroup.Key, out var maintainedVersion))
                 {
@@ -162,7 +170,7 @@ namespace FactorioModsManager.Services.Implementations
                     bool noMoreMaintainedReleases = false;
                     bool shouldDelete = maintainedVersion.DeleteNoLongerMaintainedReleases;
 
-                    foreach (var release in versionGroup) // releases are stored ordered by ReleasedAt descending
+                    foreach (var release in versionGroup.Value) // releases are stored ordered by Version descending
                     {
                         if (noMoreMaintainedReleases)
                         {
@@ -248,14 +256,17 @@ namespace FactorioModsManager.Services.Implementations
 
             foreach (var mod in mods.Values)
             {
-                foreach (var release in mod.Releases)
+                foreach (var releases in mod.GroupedReleases.Values)
                 {
-                    foreach (var dependency in release.Dependencies)
+                    foreach (var release in releases)
                     {
-                        if (dependency.TargetMod == null
-                            && mods.TryGetValue(dependency.GetTargetModName(), out var modData))
+                        foreach (var dependency in release.Dependencies)
                         {
-                            dependency.TargetMod = modData;
+                            if (dependency.TargetMod == null
+                                && mods.TryGetValue(dependency.GetTargetModName(), out var modData))
+                            {
+                                dependency.TargetMod = modData;
+                            }
                         }
                     }
                 }

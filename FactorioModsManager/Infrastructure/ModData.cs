@@ -15,11 +15,11 @@ namespace FactorioModsManager.Infrastructure
 
         }
 
-        public ModData(string name, string owner, List<ReleaseData> releases, string title, DateTime createdAt)
+        public ModData(string name, string owner, Dictionary<FactorioVersion, List<ReleaseData>> groupedReleases, string title, DateTime createdAt)
         {
             Name = name;
             Owner = owner;
-            Releases = releases;
+            GroupedReleases = groupedReleases;
             Title = title;
             CreatedAt = createdAt;
         }
@@ -43,10 +43,12 @@ namespace FactorioModsManager.Infrastructure
         public string Owner { get; set; }
 
         /// <summary>
-        /// A list of different versions of the mod available for download.
+        /// <para>A list of different versions of the mod available for download.</para>
+        /// <para>Grouped by <see cref="ReleaseData.FactorioVersion"/> and ordered
+        /// by <see cref="ReleaseData.Version"/> descending</para>
         /// </summary>
         [DataMember(/*IsRequired = true*/)]
-        public List<ReleaseData> Releases { get; set; }
+        public Dictionary<FactorioVersion, List<ReleaseData>> GroupedReleases { get; set; }
 
         [DataMember(IsRequired = false)]
         public ReleaseData? LatestRelease { get; set; }
