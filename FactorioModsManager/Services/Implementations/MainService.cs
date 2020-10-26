@@ -81,8 +81,7 @@ namespace FactorioModsManager.Services.Implementations
             {
                 if (programData.Mods.TryGetValue(entry.Name, out var modData))
                 {
-                    if (modData.LatestRelease == null
-                        || entry.LatestRelease.ReleasedAt != modData.LatestRelease.ReleasedAt)
+                    if ((entry.LatestRelease?.ReleasedAt ?? null) != (modData.LatestRelease?.ReleasedAt ?? null))
                     {
                         SyncMod(entry, await client.GetResultEntryFullAsync(entry.Name), modData);
                         Console.WriteLine($"Changed {entry.Name}.");
@@ -110,11 +109,12 @@ namespace FactorioModsManager.Services.Implementations
             TryResolveModDependencys(programData);
 
             if (attemptedSaveCount > 0)
+            {
+                --attemptedSaveCount;
                 SaveChanges(bypassConditions: true);
+            }
 
-
-
-            Console.Write("Determining which mods should be maintained. Downloading and deleting accordingly.");
+            Console.WriteLine("Determining which mods should be maintained. Downloading and deleting accordingly.");
 
             string modsPath = configService.GetConfig().GetFullModsPath();
             if (!Directory.Exists(modsPath))
@@ -126,7 +126,7 @@ namespace FactorioModsManager.Services.Implementations
             foreach (var mod in programData.Mods.Values)
                 await SyncMaintainedReleasesAsync(mod, maintainedVersions);
 
-            programDataService.SetProgramData(programData);
+            //programDataService.SetProgramData(programData);
         }
 
         public void SyncModPartial(ResultEntry portalMod, ModData modData)
@@ -237,7 +237,7 @@ namespace FactorioModsManager.Services.Implementations
                 File.WriteAllBytes(path, bytes);
             }
             release.IsMaintained = true;
-            Console.WriteLine($"{release.GetFileName()} is not maintained.");
+            Console.WriteLine($"{release.GetFileName()} is now maintained.");
         }
 
         public void EnsureReleaseIsNotMaintained(ReleaseData release, bool shouldDelete)
