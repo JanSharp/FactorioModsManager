@@ -125,7 +125,7 @@ namespace FactorioModsManager.Services.Implementations
                 SaveChanges(bypassConditions: true);
             }
 
-            Console.WriteLine("Determining which mods should be maintained. Downloading and deleting accordingly.");
+            Console.WriteLine("Determining which releases should be maintained. Downloading and deleting accordingly.");
 
             string modsPath = configService.GetConfig().GetFullModsPath();
             if (!Directory.Exists(modsPath))
