@@ -50,6 +50,5 @@ namespace FactorioModsManager.Infrastructure
                 return path;
             return Path.Combine(dirPath, path);
         }
-
     }
 }
