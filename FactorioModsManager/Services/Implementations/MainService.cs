@@ -134,10 +134,12 @@ namespace FactorioModsManager.Services.Implementations
             var maintainedVersions = configService.GetConfig().MaintainedFactorioVersions
                 .ToDictionary(v => v.FactorioVersion);
 
-            foreach (var mod in programData.Mods.Values)
-                await SyncMaintainedReleasesAsync(mod, maintainedVersions);
+            var maintainedReleaseFileNames = Directory.EnumerateFiles(configService.GetConfig().GetFullModsPath())
+                .Select(f => Path.GetFileName(f))
+                .ToHashSet();
 
-            //programDataService.SetProgramData(programData);
+            foreach (var mod in programData.Mods.Values)
+                await SyncMaintainedReleasesAsync(mod, maintainedVersions, maintainedReleaseFileNames);
         }
 
         public void SyncModPartial(ResultEntry portalEntryFull, ModData modData)
@@ -188,7 +190,8 @@ namespace FactorioModsManager.Services.Implementations
 
         public async Task SyncMaintainedReleasesAsync(
             ModData mod,
-            Dictionary<FactorioVersion, MaintainedVersionConfig> maintainedVersions)
+            Dictionary<FactorioVersion, MaintainedVersionConfig> maintainedVersions,
+            HashSet<string> maintainedReleaseFileNames)
         {
             foreach (var versionGroup in mod.GroupedReleases)
             {
@@ -202,7 +205,7 @@ namespace FactorioModsManager.Services.Implementations
                     {
                         if (noMoreMaintainedReleases)
                         {
-                            EnsureReleaseIsNotMaintained(release, shouldDelete);
+                            EnsureReleaseIsNotMaintained(release, shouldDelete, maintainedReleaseFileNames);
                             continue;
                         }
 
@@ -211,14 +214,14 @@ namespace FactorioModsManager.Services.Implementations
                         if (maintainedVersion.MinMaintainedReleases.HasValue
                             && count <= maintainedVersion.MinMaintainedReleases.Value)
                         {
-                            await EnsureReleaseIsMaintainedAsync(release);
+                            await EnsureReleaseIsMaintainedAsync(release, maintainedReleaseFileNames);
                             continue;
                         }
 
                         if (maintainedVersion.MaxMaintainedReleases.HasValue
                             && count > maintainedVersion.MaxMaintainedReleases.Value)
                         {
-                            EnsureReleaseIsNotMaintained(release, shouldDelete);
+                            EnsureReleaseIsNotMaintained(release, shouldDelete, maintainedReleaseFileNames);
                             noMoreMaintainedReleases = true;
                             continue;
                         }
@@ -226,51 +229,56 @@ namespace FactorioModsManager.Services.Implementations
                         if (maintainedVersion.MaintainedDays.HasValue
                             && (DateTime.Now - release.ReleasedAt).Days > (int)maintainedVersion.MaintainedDays.Value)
                         {
-                            EnsureReleaseIsNotMaintained(release, shouldDelete);
+                            EnsureReleaseIsNotMaintained(release, shouldDelete, maintainedReleaseFileNames);
                             noMoreMaintainedReleases = true;
                             continue;
                         }
 
-                        await EnsureReleaseIsMaintainedAsync(release);
+                        await EnsureReleaseIsMaintainedAsync(release, maintainedReleaseFileNames);
                     }
                 }
             }
         }
 
-        public async Task EnsureReleaseIsMaintainedAsync(ReleaseData release)
+        public async Task EnsureReleaseIsMaintainedAsync(
+            ReleaseData release,
+            HashSet<string> maintainedReleaseFileNames)
         {
-            if (release.IsMaintained)
+            string fileName = release.GetFileName();
+            if (maintainedReleaseFileNames.Contains(fileName))
                 return;
 
             string modsPath = configService.GetConfig().GetFullModsPath();
-            string path = Path.Combine(modsPath, release.GetFileName());
-            if (!File.Exists(path))
+            string path = Path.Combine(modsPath, fileName);
+            if (!File.Exists(path) && false)
             {
-                Console.WriteLine($"Downloading {release.GetFileName()}.");
+                Console.WriteLine($"Downloading {fileName}.");
                 var bytes = await DownloadReleaseAsync(release);
                 File.WriteAllBytes(path, bytes);
             }
-            release.IsMaintained = true;
-            Console.WriteLine($"{release.GetFileName()} is now maintained.");
+            maintainedReleaseFileNames.Add(fileName);
         }
 
-        public void EnsureReleaseIsNotMaintained(ReleaseData release, bool shouldDelete)
+        public void EnsureReleaseIsNotMaintained(
+            ReleaseData release,
+            bool shouldDelete,
+            HashSet<string> maintainedReleaseFileNames)
         {
-            if (!release.IsMaintained)
+            string fileName = release.GetFileName();
+            if (!maintainedReleaseFileNames.Contains(fileName))
                 return;
 
             if (shouldDelete)
             {
                 string modsPath = configService.GetConfig().GetFullModsPath();
-                string path = Path.Combine(modsPath, release.GetFileName());
+                string path = Path.Combine(modsPath, fileName);
                 if (File.Exists(path))
                 {
-                    Console.WriteLine($"Deleting {release.GetFileName()}.");
+                    Console.WriteLine($"Deleting    {fileName}.");
                     File.Delete(path);
                 }
             }
-            release.IsMaintained = false;
-            Console.WriteLine($"{release.GetFileName()} is no longer maintained.");
+            maintainedReleaseFileNames.Remove(fileName);
         }
 
         public Task<byte[]> DownloadReleaseAsync(ReleaseData release)
