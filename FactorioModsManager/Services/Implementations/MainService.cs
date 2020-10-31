@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -54,10 +55,11 @@ namespace FactorioModsManager.Services.Implementations
             Console.WriteLine("Syncronizing with mod portal...");
 
             ProgramData programData = programDataService.GetProgramData();
-            DateTime lastSaveTime = DateTime.Now;
+            HashSet<string> modNamesToDelete = programData.Mods.Values.Select(m => m.Name).ToHashSet();
 
             Console.WriteLine($"Loaded {programData.Mods.Count} mods from data file.");
 
+            DateTime lastSaveTime = DateTime.Now;
             int attemptedSaveCount = 0;
             void SaveChanges(bool bypassConditions = false)
             {
@@ -70,17 +72,20 @@ namespace FactorioModsManager.Services.Implementations
                         && (DateTime.Now - lastSaveTime).Minutes >= 5
                     ))
                 {
-                    Console.WriteLine($"Saving {attemptedSaveCount} changed or added mods.");
+                    Console.WriteLine($"Saving {attemptedSaveCount} changes.");
                     attemptedSaveCount = 0;
                     programDataService.SetProgramData(programData);
                     lastSaveTime = DateTime.Now;
                 }
             }
 
+            // create and update
             await foreach (var entry in client.EnumerateAsync())
             {
                 if (programData.Mods.TryGetValue(entry.Name, out var modData))
                 {
+                    modNamesToDelete.Remove(entry.Name);
+
                     if ((entry.LatestRelease?.ReleasedAt ?? null) != (modData.LatestRelease?.ReleasedAt ?? null))
                     {
                         SyncMod(entry, await client.GetResultEntryFullAsync(entry.Name), modData);
@@ -103,10 +108,16 @@ namespace FactorioModsManager.Services.Implementations
                 }
             }
 
-            // TODO: detect deleted mods
-
-            Console.WriteLine("Attempting to resolve mod dependencies.");
-            TryResolveModDependencys(programData);
+            // delete mods
+            if (modNamesToDelete.Count > 0)
+            {
+                foreach (var modNameToDelete in modNamesToDelete)
+                {
+                    programData.Mods.Remove(modNameToDelete);
+                    Console.WriteLine($"Removed {modNameToDelete}.");
+                }
+                SaveChanges();
+            }
 
             if (attemptedSaveCount > 0)
             {
@@ -269,29 +280,6 @@ namespace FactorioModsManager.Services.Implementations
                 DownloadUrl = release.DownloadUrl,
                 Sha1 = release.Sha1,
             });
-        }
-
-        public void TryResolveModDependencys(ProgramData programData)
-        {
-            var mods = programData.Mods;
-
-            foreach (var mod in mods.Values)
-            {
-                foreach (var releases in mod.GroupedReleases.Values)
-                {
-                    foreach (var release in releases)
-                    {
-                        foreach (var dependency in release.Dependencies)
-                        {
-                            if (dependency.TargetMod == null
-                                && mods.TryGetValue(dependency.GetTargetModName(), out var modData))
-                            {
-                                dependency.TargetMod = modData;
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
 }
