@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Xml;
@@ -34,7 +35,8 @@ namespace FactorioModsManager.Services.Implementations
             if (File.Exists(programDataFilePath))
             {
                 using var fileStream = new FileStream(programDataFilePath, FileMode.Open, FileAccess.Read);
-                using var reader = XmlDictionaryReader.CreateTextReader(fileStream, Encoding.UTF8, new XmlDictionaryReaderQuotas()
+                using var deflateStream = new DeflateStream(fileStream, CompressionMode.Decompress);
+                using var reader = XmlDictionaryReader.CreateTextReader(deflateStream, Encoding.UTF8, new XmlDictionaryReaderQuotas()
                 {
                     MaxArrayLength = int.MaxValue,
                     MaxDepth = int.MaxValue,
@@ -55,15 +57,20 @@ namespace FactorioModsManager.Services.Implementations
             if (!Directory.Exists(dataDir))
                 Directory.CreateDirectory(dataDir);
 
-            using var stream = new MemoryStream();
-            stream.Write(Encoding.UTF8.Preamble);
-            using var writer = XmlDictionaryWriter.CreateTextWriter(stream, Encoding.UTF8);
+            using var memoryStream = new MemoryStream();
+            using var deflateStream = new DeflateStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true);
+            deflateStream.Write(Encoding.UTF8.Preamble);
+            using var writer = XmlDictionaryWriter.CreateTextWriter(deflateStream, Encoding.UTF8, ownsStream: false);
             serializer.WriteObject(writer, programData);
+            writer.Close();
+            deflateStream.Close();
+            memoryStream.Position = 0;
+
             using var fileStream = new FileStream(GetProgramDataFilePath(dataDir), FileMode.OpenOrCreate, FileAccess.Write);
-            writer.Flush();
-            fileStream.Write(stream.GetBuffer(), 0, (int)stream.Length);
+            memoryStream.CopyTo(fileStream);
+            fileStream.Close();
         }
 
-        private string GetProgramDataFilePath(string dataDir) => Path.Combine(dataDir, "data.xml");
+        private string GetProgramDataFilePath(string dataDir) => Path.Combine(dataDir, "data.dat");
     }
 }
