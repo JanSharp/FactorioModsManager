@@ -129,14 +129,14 @@ namespace FactorioModsManager.Services.Implementations
             //programDataService.SetProgramData(programData);
         }
 
-        public void SyncModPartial(ResultEntry portalMod, ModData modData)
+        public void SyncModPartial(ResultEntry portalEntryFull, ModData modData)
         {
-            mapperService.MapToModData(portalMod, modData);
+            mapperService.MapToModData(portalEntryFull, modData);
         }
 
-        public void SyncMod(ResultEntry entry, ResultEntryFull portalMod, ModData modData)
+        public void SyncMod(ResultEntry portalEntry, ResultEntryFull portalEntryFull, ModData modData)
         {
-            mapperService.MapToModData(portalMod, modData);
+            mapperService.MapToModData(portalEntryFull, modData);
 
             var existingReleasesMap = modData.GroupedReleases
                 .SelectMany(g => g.Value)
@@ -144,11 +144,14 @@ namespace FactorioModsManager.Services.Implementations
 
             modData.GroupedReleases = new Dictionary<FactorioVersion, List<ReleaseData>>();
 
-            foreach (var portalRelease in portalMod.Releases.OrderByDescending(r => r.ReleasedAt))
+            foreach (var portalRelease in portalEntryFull.Releases.OrderByDescending(r => r.ReleasedAt))
             {
                 ReleaseData releaseData;
-                if (existingReleasesMap.TryGetValue(portalRelease.Version, out var release))
+                if (existingReleasesMap.TryGetValue(portalRelease.Version, out var release)
+                    && release.ReleasedAt == portalRelease.ReleasedAt)
+                {
                     releaseData = release;
+                }
                 else
                 {
                     releaseData = mapperService.MapToReleaseData(modData, portalRelease);
@@ -167,7 +170,7 @@ namespace FactorioModsManager.Services.Implementations
                     modData.GroupedReleases.Add(releaseData.FactorioVersion, releases);
                 }
                 releases.Add(releaseData);
-                if (releaseData.ReleasedAt == entry.LatestRelease.ReleasedAt)
+                if (releaseData.ReleasedAt == portalEntry.LatestRelease.ReleasedAt)
                     modData.LatestRelease = releaseData;
             }
         }
