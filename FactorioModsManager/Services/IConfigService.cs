@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using FactorioModsManager.Infrastructure;
+﻿using FactorioModsManager.Infrastructure;
 
 namespace FactorioModsManager.Services
 {
