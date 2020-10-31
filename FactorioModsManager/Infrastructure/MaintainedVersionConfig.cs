@@ -1,4 +1,6 @@
-﻿namespace FactorioModsManager.Infrastructure
+﻿using System.Collections.Generic;
+
+namespace FactorioModsManager.Infrastructure
 {
     public class MaintainedVersionConfig
     {
@@ -10,11 +12,17 @@
         }
 
         public MaintainedVersionConfig(FactorioVersion factorioVersion)
+            : this(new List<FactorioVersion>() { factorioVersion })
         {
-            FactorioVersion = factorioVersion;
+
         }
 
-        public FactorioVersion FactorioVersion { get; set; }
+        public MaintainedVersionConfig(List<FactorioVersion> factorioVersions)
+        {
+            FactorioVersions = factorioVersions;
+        }
+
+        public List<FactorioVersion> FactorioVersions { get; set; }
 
         public uint? MinMaintainedReleases { get; set; }
 

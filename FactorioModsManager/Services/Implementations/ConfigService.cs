@@ -60,18 +60,15 @@ namespace FactorioModsManager.Services.Implementations
                     
                     maintainedFactorioVersions: new List<MaintainedVersionConfig>()
                     {
-                        new MaintainedVersionConfig(new FactorioVersion(1, 0))
+                        new MaintainedVersionConfig(new List<FactorioVersion>()
                         {
-                            MinMaintainedReleases = 2,
-                            MaxMaintainedReleases = 5,
-                            MaintainedDays = 30,
-                            DeleteNoLongerMaintainedReleases = false,
-                        },
-                        new MaintainedVersionConfig(new FactorioVersion(0, 18))
+                            new FactorioVersion(1, 0),
+                            new FactorioVersion(0, 18),
+                        })
                         {
-                            MinMaintainedReleases = 0,
+                            MinMaintainedReleases = 1,
                             MaxMaintainedReleases = 2,
-                            MaintainedDays = 200,
+                            MaintainedDays = 30,
                             DeleteNoLongerMaintainedReleases = false,
                         },
                     },

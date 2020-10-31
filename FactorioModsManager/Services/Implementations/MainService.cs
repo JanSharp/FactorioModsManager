@@ -130,8 +130,7 @@ namespace FactorioModsManager.Services.Implementations
             if (!Directory.Exists(modsPath))
                 Directory.CreateDirectory(modsPath);
 
-            var maintainedVersions = configService.GetConfig().MaintainedFactorioVersions
-                .ToDictionary(v => v.FactorioVersion);
+            var maintainedVersions = configService.GetConfig().MaintainedFactorioVersions;
 
             var maintainedReleaseFileNames = Directory.EnumerateFiles(configService.GetConfig().GetFullModsPath())
                 .Select(f => Path.GetFileName(f))
@@ -189,51 +188,54 @@ namespace FactorioModsManager.Services.Implementations
 
         public async Task SyncMaintainedReleasesAsync(
             ModData mod,
-            Dictionary<FactorioVersion, MaintainedVersionConfig> maintainedVersions,
+            List<MaintainedVersionConfig> maintainedVersions,
             HashSet<string> maintainedReleaseFileNames)
         {
-            foreach (var versionGroup in mod.GroupedReleases)
+            foreach (var maintainedVersion in maintainedVersions)
             {
-                if (maintainedVersions.TryGetValue(versionGroup.Key, out var maintainedVersion))
+                int count = 0;
+                bool noMoreMaintainedReleases = false;
+                bool shouldDelete = maintainedVersion.DeleteNoLongerMaintainedReleases;
+
+                foreach (var maintainedFactorioVersion in maintainedVersion.FactorioVersions)
                 {
-                    int count = 0;
-                    bool noMoreMaintainedReleases = false;
-                    bool shouldDelete = maintainedVersion.DeleteNoLongerMaintainedReleases;
-
-                    foreach (var release in versionGroup.Value) // releases are stored ordered by Version descending
+                    if (mod.GroupedReleases.TryGetValue(maintainedFactorioVersion, out var releases))
                     {
-                        if (noMoreMaintainedReleases)
+                        foreach (var release in releases) // releases are stored ordered by Version descending
                         {
-                            EnsureReleaseIsNotMaintained(release, shouldDelete, maintainedReleaseFileNames);
-                            continue;
-                        }
+                            if (noMoreMaintainedReleases)
+                            {
+                                EnsureReleaseIsNotMaintained(release, shouldDelete, maintainedReleaseFileNames);
+                                continue;
+                            }
 
-                        ++count;
+                            ++count;
 
-                        if (maintainedVersion.MinMaintainedReleases.HasValue
-                            && count <= maintainedVersion.MinMaintainedReleases.Value)
-                        {
+                            if (maintainedVersion.MinMaintainedReleases.HasValue
+                                && count <= maintainedVersion.MinMaintainedReleases.Value)
+                            {
+                                await EnsureReleaseIsMaintainedAsync(release, maintainedReleaseFileNames);
+                                continue;
+                            }
+
+                            if (maintainedVersion.MaxMaintainedReleases.HasValue
+                                && count > maintainedVersion.MaxMaintainedReleases.Value)
+                            {
+                                EnsureReleaseIsNotMaintained(release, shouldDelete, maintainedReleaseFileNames);
+                                noMoreMaintainedReleases = true;
+                                continue;
+                            }
+
+                            if (maintainedVersion.MaintainedDays.HasValue
+                                && (DateTime.Now - release.ReleasedAt).Days > (int)maintainedVersion.MaintainedDays.Value)
+                            {
+                                EnsureReleaseIsNotMaintained(release, shouldDelete, maintainedReleaseFileNames);
+                                noMoreMaintainedReleases = true;
+                                continue;
+                            }
+
                             await EnsureReleaseIsMaintainedAsync(release, maintainedReleaseFileNames);
-                            continue;
                         }
-
-                        if (maintainedVersion.MaxMaintainedReleases.HasValue
-                            && count > maintainedVersion.MaxMaintainedReleases.Value)
-                        {
-                            EnsureReleaseIsNotMaintained(release, shouldDelete, maintainedReleaseFileNames);
-                            noMoreMaintainedReleases = true;
-                            continue;
-                        }
-
-                        if (maintainedVersion.MaintainedDays.HasValue
-                            && (DateTime.Now - release.ReleasedAt).Days > (int)maintainedVersion.MaintainedDays.Value)
-                        {
-                            EnsureReleaseIsNotMaintained(release, shouldDelete, maintainedReleaseFileNames);
-                            noMoreMaintainedReleases = true;
-                            continue;
-                        }
-
-                        await EnsureReleaseIsMaintainedAsync(release, maintainedReleaseFileNames);
                     }
                 }
             }
