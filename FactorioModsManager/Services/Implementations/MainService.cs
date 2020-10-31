@@ -249,7 +249,7 @@ namespace FactorioModsManager.Services.Implementations
 
             string modsPath = configService.GetConfig().GetFullModsPath();
             string path = Path.Combine(modsPath, fileName);
-            if (!File.Exists(path) && false)
+            if (!File.Exists(path))
             {
                 Console.WriteLine($"Downloading {fileName}.");
                 var bytes = await DownloadReleaseAsync(release);
