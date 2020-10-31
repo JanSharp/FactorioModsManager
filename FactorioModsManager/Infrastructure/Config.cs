@@ -13,10 +13,9 @@ namespace FactorioModsManager.Infrastructure
 
         }
 
-        public Config(string? configPath, int configVersion, List<MaintainedVersionConfig> maintainedFactorioVersions, string factorioUserName, string factorioUserToken, uint maxApiRequestsPerMinute, string modsPath, string dataPath)
+        public Config(string? configPath, List<MaintainedVersionConfig> maintainedFactorioVersions, string factorioUserName, string factorioUserToken, uint maxApiRequestsPerMinute, string modsPath, string dataPath)
         {
             this.configPath = configPath;
-            ConfigVersion = configVersion;
             MaintainedFactorioVersions = maintainedFactorioVersions;
             FactorioUserName = factorioUserName;
             FactorioUserToken = factorioUserToken;
@@ -27,8 +26,6 @@ namespace FactorioModsManager.Infrastructure
 
         [XmlIgnore]
         public string? configPath;
-
-        public int ConfigVersion { get; set; }
 
         public List<MaintainedVersionConfig> MaintainedFactorioVersions { get; set; }
 

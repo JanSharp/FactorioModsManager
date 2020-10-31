@@ -58,8 +58,6 @@ namespace FactorioModsManager.Services.Implementations
                 config = new Config(
                     configPath: configPath,
                     
-                    configVersion: 1,
-                    
                     maintainedFactorioVersions: new List<MaintainedVersionConfig>()
                     {
                         new MaintainedVersionConfig(new FactorioVersion(1, 0))
