@@ -266,11 +266,18 @@ namespace FactorioModsManager.Services.Implementations
 
         public Task<byte[]> DownloadReleaseAsync(ReleaseData release)
         {
-            return client.DownloadModAsByteArrayAsync(new Release()
+            try
             {
-                DownloadUrl = release.DownloadUrl,
-                Sha1 = release.Sha1,
-            });
+                return client.DownloadModAsByteArrayAsync(new Release()
+                {
+                    DownloadUrl = release.DownloadUrl,
+                    Sha1 = release.Sha1,
+                });
+            }
+            catch (NotImplementedException ex)
+            {
+                throw new Exception("Invalid username and user token?", ex);
+            }
         }
 
         public void EnsureReleaseIsNotMaintained(ReleaseData release, bool shouldDelete)
