@@ -50,7 +50,6 @@ namespace FactorioModsManager.Services.Implementations
 
         public async Task RunAsync()
         {
-            throw new Exception("test");
             if (argsService.GetArgs().CreateConfig)
                 return;
 
