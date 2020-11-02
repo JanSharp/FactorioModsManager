@@ -13,7 +13,15 @@ namespace FactorioModsManager.Infrastructure
 
         }
 
-        public Config(string? configPath, List<MaintainedVersionConfig> maintainedFactorioVersions, string factorioUserName, string factorioUserToken, uint maxApiRequestsPerMinute, string modsPath, string dataPath)
+        public Config(
+            string? configPath,
+            List<MaintainedVersionConfig> maintainedFactorioVersions,
+            string factorioUserName,
+            string factorioUserToken,
+            uint maxApiRequestsPerMinute,
+            string modsPath,
+            string dataPath,
+            bool deleteNoLongerExistingReleases)
         {
             this.configPath = configPath;
             MaintainedFactorioVersions = maintainedFactorioVersions;
@@ -22,6 +30,7 @@ namespace FactorioModsManager.Infrastructure
             MaxApiRequestsPerMinute = maxApiRequestsPerMinute;
             ModsPath = modsPath;
             DataPath = dataPath;
+            DeleteOldReleases = deleteNoLongerExistingReleases;
         }
 
         [XmlIgnore]
@@ -40,6 +49,8 @@ namespace FactorioModsManager.Infrastructure
 
         public string DataPath { get; set; }
         public string GetFullDataPath() => GetFullPath(DataPath);
+
+        public bool DeleteOldReleases { get; set; } = true;
 
         private string GetFullPath(string path)
         {

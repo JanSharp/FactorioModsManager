@@ -72,7 +72,18 @@ namespace FactorioModsManager.Infrastructure
         /// <returns>The file name of the release. Follows the pattern "{name}_{version}.zip"</returns>
         public string GetFileName()
         {
-            return $"{Mod.Name}_{Version}.zip";
+            return ReleaseData.GetFileName(Mod.Name, Version);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="modName"></param>
+        /// <param name="version"></param>
+        /// <returns>The file name of the release. Follows the pattern "{name}_{version}.zip"</returns>
+        public static string GetFileName(string modName, FactorioVersion version)
+        {
+            return $"{modName}_{version}.zip";
         }
     }
 }

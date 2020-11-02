@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using FactorioModPortalClient;
@@ -15,19 +14,22 @@ namespace FactorioModsManager.Services.Implementations
         private readonly IProgramDataService programDataService;
         private readonly IMapperService mapperService;
         private readonly IModPortalClient client;
+        private readonly IModsStorageService modsStorageService;
 
         public MainService(
             IArgsService argsService,
             IConfigService configService,
             IProgramDataService programDataService,
             IMapperService mapperService,
-            IModPortalClient client)
+            IModPortalClient client,
+            IModsStorageService modsStorageService)
         {
             this.argsService = argsService;
             this.configService = configService;
             this.programDataService = programDataService;
             this.mapperService = mapperService;
             this.client = client;
+            this.modsStorageService = modsStorageService;
         }
 
         /* concept:
@@ -126,18 +128,11 @@ namespace FactorioModsManager.Services.Implementations
 
             Console.WriteLine("Determining which releases should be maintained. Downloading and deleting accordingly.");
 
-            string modsPath = configService.GetConfig().GetFullModsPath();
-            if (!Directory.Exists(modsPath))
-                Directory.CreateDirectory(modsPath);
-
             var maintainedVersions = configService.GetConfig().MaintainedFactorioVersions;
 
-            var maintainedReleaseFileNames = Directory.EnumerateFiles(configService.GetConfig().GetFullModsPath())
-                .Select(f => Path.GetFileName(f))
-                .ToHashSet();
-
+            List<FactorioVersion> cachedReleases = new List<FactorioVersion>();
             foreach (var mod in programData.Mods.Values)
-                await SyncMaintainedReleasesAsync(mod, maintainedVersions, maintainedReleaseFileNames);
+                await SyncMaintainedReleasesAsync(mod, maintainedVersions, cachedReleases);
         }
 
         public void SyncModPartial(ResultEntry portalEntryFull, ModData modData)
@@ -189,13 +184,17 @@ namespace FactorioModsManager.Services.Implementations
         public async Task SyncMaintainedReleasesAsync(
             ModData mod,
             List<MaintainedVersionConfig> maintainedVersions,
-            HashSet<string> maintainedReleaseFileNames)
+            List<FactorioVersion> cachedReleases)
         {
+            bool shouldDelete;
+
+            modsStorageService.GetAllCached(mod, cachedReleases);
+
             foreach (var maintainedVersion in maintainedVersions)
             {
                 int count = 0;
                 bool noMoreMaintainedReleases = false;
-                bool shouldDelete = maintainedVersion.DeleteNoLongerMaintainedReleases;
+                shouldDelete = maintainedVersion.DeleteNoLongerMaintainedReleases;
 
                 foreach (var maintainedFactorioVersion in maintainedVersion.FactorioVersions)
                 {
@@ -203,9 +202,11 @@ namespace FactorioModsManager.Services.Implementations
                     {
                         foreach (var release in releases) // releases are stored ordered by Version descending
                         {
+                            cachedReleases.Remove(release.Version);
+
                             if (noMoreMaintainedReleases)
                             {
-                                EnsureReleaseIsNotMaintained(release, shouldDelete, maintainedReleaseFileNames);
+                                EnsureReleaseIsNotMaintained(release, shouldDelete);
                                 continue;
                             }
 
@@ -214,14 +215,14 @@ namespace FactorioModsManager.Services.Implementations
                             if (maintainedVersion.MinMaintainedReleases.HasValue
                                 && count <= maintainedVersion.MinMaintainedReleases.Value)
                             {
-                                await EnsureReleaseIsMaintainedAsync(release, maintainedReleaseFileNames);
+                                await EnsureReleaseIsMaintainedAsync(release);
                                 continue;
                             }
 
                             if (maintainedVersion.MaxMaintainedReleases.HasValue
                                 && count > maintainedVersion.MaxMaintainedReleases.Value)
                             {
-                                EnsureReleaseIsNotMaintained(release, shouldDelete, maintainedReleaseFileNames);
+                                EnsureReleaseIsNotMaintained(release, shouldDelete);
                                 noMoreMaintainedReleases = true;
                                 continue;
                             }
@@ -229,57 +230,38 @@ namespace FactorioModsManager.Services.Implementations
                             if (maintainedVersion.MaintainedDays.HasValue
                                 && (DateTime.Now - release.ReleasedAt).Days > (int)maintainedVersion.MaintainedDays.Value)
                             {
-                                EnsureReleaseIsNotMaintained(release, shouldDelete, maintainedReleaseFileNames);
+                                EnsureReleaseIsNotMaintained(release, shouldDelete);
                                 noMoreMaintainedReleases = true;
                                 continue;
                             }
 
-                            await EnsureReleaseIsMaintainedAsync(release, maintainedReleaseFileNames);
+                            await EnsureReleaseIsMaintainedAsync(release);
                         }
                     }
                 }
             }
+
+            shouldDelete = configService.GetConfig().DeleteOldReleases;
+            foreach (var deletedVersion in cachedReleases)
+            {
+                UnmaintainRelease(mod.Name, deletedVersion, shouldDelete);
+            }
         }
 
-        public async Task EnsureReleaseIsMaintainedAsync(
-            ReleaseData release,
-            HashSet<string> maintainedReleaseFileNames)
+        public async Task EnsureReleaseIsMaintainedAsync(ReleaseData release)
         {
-            string fileName = release.GetFileName();
-            if (maintainedReleaseFileNames.Contains(fileName))
-                return;
+            if (!modsStorageService.ReleaseIsCached(release))
+                await MaintainRelease(release);
+        }
 
-            string modsPath = configService.GetConfig().GetFullModsPath();
-            string path = Path.Combine(modsPath, fileName);
-            if (!File.Exists(path))
+        public async Task MaintainRelease(ReleaseData release)
+        {
+            if (!modsStorageService.ReleaseIsStored(release))
             {
-                Console.WriteLine($"Downloading {fileName}.");
+                Console.WriteLine($"Downloading {release.GetFileName()}.");
                 var bytes = await DownloadReleaseAsync(release);
-                File.WriteAllBytes(path, bytes);
+                modsStorageService.StoreRelease(release, bytes);
             }
-            maintainedReleaseFileNames.Add(fileName);
-        }
-
-        public void EnsureReleaseIsNotMaintained(
-            ReleaseData release,
-            bool shouldDelete,
-            HashSet<string> maintainedReleaseFileNames)
-        {
-            string fileName = release.GetFileName();
-            if (!maintainedReleaseFileNames.Contains(fileName))
-                return;
-
-            if (shouldDelete)
-            {
-                string modsPath = configService.GetConfig().GetFullModsPath();
-                string path = Path.Combine(modsPath, fileName);
-                if (File.Exists(path))
-                {
-                    Console.WriteLine($"Deleting    {fileName}.");
-                    File.Delete(path);
-                }
-            }
-            maintainedReleaseFileNames.Remove(fileName);
         }
 
         public Task<byte[]> DownloadReleaseAsync(ReleaseData release)
@@ -289,6 +271,26 @@ namespace FactorioModsManager.Services.Implementations
                 DownloadUrl = release.DownloadUrl,
                 Sha1 = release.Sha1,
             });
+        }
+
+        public void EnsureReleaseIsNotMaintained(ReleaseData release, bool shouldDelete)
+        {
+            if (modsStorageService.ReleaseIsCached(release))
+                UnmaintainRelease(release, shouldDelete);
+        }
+
+        private void UnmaintainRelease(ReleaseData release, bool shouldDelete)
+        {
+            UnmaintainRelease(release.Mod.Name, release.Version, shouldDelete);
+        }
+
+        private void UnmaintainRelease(string modName, FactorioVersion version, bool shouldDelete)
+        {
+            if (shouldDelete && modsStorageService.ReleaseIsStored(modName, version))
+            {
+                Console.WriteLine($"Deleting    {ReleaseData.GetFileName(modName, version)}.");
+                modsStorageService.DiscardRelease(modName, version);
+            }
         }
     }
 }

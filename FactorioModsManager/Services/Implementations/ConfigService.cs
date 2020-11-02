@@ -76,8 +76,8 @@ namespace FactorioModsManager.Services.Implementations
                     factorioUserToken: "undefined",
                     maxApiRequestsPerMinute: 100,
                     modsPath: "Mods",
-                    dataPath: "Data"
-                    );
+                    dataPath: "Data",
+                    deleteNoLongerExistingReleases: false);
 
                 WriteConfigFile();
             }
