@@ -78,7 +78,7 @@ namespace FactorioModsManager.Services.Implementations
                     modsPath: "Mods",
                     dataPath: "Data",
                     crashDumpPath: "CrashDumps",
-                    deleteNoLongerExistingReleases: false);
+                    deleteOldReleases: false);
 
                 WriteConfigFile();
             }

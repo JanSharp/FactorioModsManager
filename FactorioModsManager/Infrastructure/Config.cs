@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
 
 namespace FactorioModsManager.Infrastructure
 {
-    public class Config
+    public class Config : ICloneable
     {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public Config()
@@ -22,7 +23,7 @@ namespace FactorioModsManager.Infrastructure
             string modsPath,
             string dataPath,
             string crashDumpPath,
-            bool deleteNoLongerExistingReleases)
+            bool deleteOldReleases)
         {
             this.configPath = configPath;
             MaintainedFactorioVersions = maintainedFactorioVersions;
@@ -32,7 +33,7 @@ namespace FactorioModsManager.Infrastructure
             ModsPath = modsPath;
             DataPath = dataPath;
             CrashDumpPath = crashDumpPath;
-            DeleteOldReleases = deleteNoLongerExistingReleases;
+            DeleteOldReleases = deleteOldReleases;
         }
 
         [XmlIgnore]
@@ -65,6 +66,25 @@ namespace FactorioModsManager.Infrastructure
             if (dirPath == null)
                 return path;
             return Path.Combine(dirPath, path);
+        }
+
+        public Config Clone()
+        {
+            return new Config(
+                configPath,
+                MaintainedFactorioVersions,
+                FactorioUserName,
+                FactorioUserToken,
+                MaxApiRequestsPerMinute,
+                ModsPath,
+                DataPath,
+                CrashDumpPath,
+                DeleteOldReleases);
+        }
+
+        object ICloneable.Clone()
+        {
+            return Clone();
         }
     }
 }

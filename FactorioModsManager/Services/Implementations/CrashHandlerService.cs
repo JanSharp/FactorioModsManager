@@ -1,5 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Text;
+using System.Xml.Serialization;
+using FactorioModsManager.Infrastructure;
 
 namespace FactorioModsManager.Services.Implementations
 {
@@ -12,9 +15,31 @@ namespace FactorioModsManager.Services.Implementations
             this.configService = configService;
         }
 
-        public string CreateDump(Exception ex)
+        public string CreateDump(Exception ex)  
         {
-            return ex.ToString();
+            string? configDump = null;
+            try
+            {
+                var originalConfig = configService.GetConfig();
+                var clonedConfig = originalConfig.Clone();
+                clonedConfig.FactorioUserName = "undefined";
+                clonedConfig.FactorioUserToken = "undefined";
+
+                var serializer = new XmlSerializer(typeof(Config));
+                var stream = new MemoryStream();
+                serializer.Serialize(stream, clonedConfig);
+                configDump = Encoding.UTF8.GetString(stream.ToArray());
+            }
+            catch { }
+            
+            if (configDump != null)
+            {
+                return ex.ToString() + Environment.NewLine + Environment.NewLine + configDump;
+            }
+            else
+            {
+                return ex.ToString();
+            }
         }
 
         public void WriteDump(string dump)
