@@ -77,6 +77,7 @@ namespace FactorioModsManager.Services.Implementations
                     maxApiRequestsPerMinute: 100,
                     modsPath: "Mods",
                     dataPath: "Data",
+                    crashDumpPath: "CrashDumps",
                     deleteNoLongerExistingReleases: false);
 
                 WriteConfigFile();

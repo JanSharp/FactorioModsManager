@@ -21,6 +21,7 @@ namespace FactorioModsManager.Infrastructure
             uint maxApiRequestsPerMinute,
             string modsPath,
             string dataPath,
+            string crashDumpPath,
             bool deleteNoLongerExistingReleases)
         {
             this.configPath = configPath;
@@ -30,6 +31,7 @@ namespace FactorioModsManager.Infrastructure
             MaxApiRequestsPerMinute = maxApiRequestsPerMinute;
             ModsPath = modsPath;
             DataPath = dataPath;
+            CrashDumpPath = crashDumpPath;
             DeleteOldReleases = deleteNoLongerExistingReleases;
         }
 
@@ -49,6 +51,9 @@ namespace FactorioModsManager.Infrastructure
 
         public string DataPath { get; set; }
         public string GetFullDataPath() => GetFullPath(DataPath);
+
+        public string CrashDumpPath { get; set; }
+        public string GetFullCrashDumpPath() => GetFullPath(CrashDumpPath);
 
         public bool DeleteOldReleases { get; set; } = true;
 

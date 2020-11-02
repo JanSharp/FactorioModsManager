@@ -29,6 +29,7 @@ namespace FactorioModsManager
                 => ActivatorUtilities.CreateInstance<ArgsService>(sp, new[] { args }));
             serviceCollection.AddSingleton<IMainService, MainService>();
             serviceCollection.AddSingleton<IModsStorageService, ModsStorageService>();
+            serviceCollection.AddSingleton<ICrashHandlerService, CrashHandlerService>();
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -37,13 +38,22 @@ namespace FactorioModsManager
             try
             {
                 using var scope = serviceScopeFactory.CreateScope();
-                var configService = scope.ServiceProvider.GetService<IMainService>();
-                await configService.RunAsync();
+                var crashService = scope.ServiceProvider.GetService<ICrashHandlerService>();
+                try
+                {
+                    var mainService = scope.ServiceProvider.GetService<IMainService>();
+                    await mainService.RunAsync();
+                }
+                catch (Exception ex)
+                {
+                    var dump = crashService.CreateDump(ex);
+                    crashService.WriteDump(dump);
+                }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
                 Console.WriteLine("Exception occurred. This program is using exceptions for error 'handling', so read the message please and thank you.");
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(ex.ToString());
             }
         }
     }
