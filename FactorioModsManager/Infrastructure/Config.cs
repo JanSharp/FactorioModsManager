@@ -55,7 +55,7 @@ namespace FactorioModsManager.Infrastructure
         public string CrashDumpPath { get; set; }
         public string GetFullCrashDumpPath() => GetFullPath(CrashDumpPath);
 
-        public bool DeleteOldReleases { get; set; } = true;
+        public bool DeleteOldReleases { get; set; }
 
         private string GetFullPath(string path)
         {
