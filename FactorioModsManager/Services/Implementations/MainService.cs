@@ -251,10 +251,10 @@ namespace FactorioModsManager.Services.Implementations
         public async Task EnsureReleaseIsMaintainedAsync(ReleaseData release)
         {
             if (!modsStorageService.ReleaseIsCached(release))
-                await MaintainRelease(release);
+                await MaintainReleaseAsync(release);
         }
 
-        public async Task MaintainRelease(ReleaseData release)
+        public async Task MaintainReleaseAsync(ReleaseData release)
         {
             if (!modsStorageService.ReleaseIsStored(release))
             {
@@ -279,12 +279,12 @@ namespace FactorioModsManager.Services.Implementations
                 UnmaintainRelease(release, shouldDelete);
         }
 
-        private void UnmaintainRelease(ReleaseData release, bool shouldDelete)
+        public void UnmaintainRelease(ReleaseData release, bool shouldDelete)
         {
             UnmaintainRelease(release.Mod.Name, release.Version, shouldDelete);
         }
 
-        private void UnmaintainRelease(string modName, FactorioVersion version, bool shouldDelete)
+        public void UnmaintainRelease(string modName, FactorioVersion version, bool shouldDelete)
         {
             if (shouldDelete && modsStorageService.ReleaseIsStored(modName, version))
             {
