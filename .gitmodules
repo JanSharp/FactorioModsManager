@@ -1,3 +1,6 @@
 [submodule "FactorioModPortalClient"]
 	path = FactorioModPortalClient
 	url = https://github.com/JanSharp/FactorioModPortalClient.git
+[submodule "FactorioSaveFileUtilities"]
+	path = FactorioSaveFileUtilities
+	url = https://github.com/JanSharp/FactorioSaveFileUtilities.git

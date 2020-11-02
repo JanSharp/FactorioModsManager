@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FactorioModsManager", "Fact
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FactorioModPortalClient", "FactorioModPortalClient\FactorioModPortalClient\FactorioModPortalClient.csproj", "{419F139E-DE92-4F76-81B4-C9D9626EDAC4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FactorioModsManager.UnitTests", "FactorioModsManager.UnitTests\FactorioModsManager.UnitTests.csproj", "{BE418D60-8F1C-4AFB-AB1E-6E4DC442AC12}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FactorioModsManager.UnitTests", "FactorioModsManager.UnitTests\FactorioModsManager.UnitTests.csproj", "{BE418D60-8F1C-4AFB-AB1E-6E4DC442AC12}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FactorioSaveFileUtilities", "FactorioSaveFileUtilities\FactorioSaveFileUtilities\FactorioSaveFileUtilities.csproj", "{1C2687C2-5B1D-47DA-BF5B-4D5027BB406E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{BE418D60-8F1C-4AFB-AB1E-6E4DC442AC12}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE418D60-8F1C-4AFB-AB1E-6E4DC442AC12}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE418D60-8F1C-4AFB-AB1E-6E4DC442AC12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C2687C2-5B1D-47DA-BF5B-4D5027BB406E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C2687C2-5B1D-47DA-BF5B-4D5027BB406E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C2687C2-5B1D-47DA-BF5B-4D5027BB406E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C2687C2-5B1D-47DA-BF5B-4D5027BB406E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
