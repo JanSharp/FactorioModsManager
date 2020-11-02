@@ -19,7 +19,7 @@ each one indivitually from the portal api.
 
 ## General Behavior notes
 
-The program keeps all information about all mods in a single `data.xml` file.
+The program keeps all information about all mods in a single `data.dat` file.
 It has to read and write the entire file every single time when launching or
 saving changes. Additionally, since it is literally just an xml file, this is
 very wasteful storage space wise. However it is how it is right now.
@@ -44,10 +44,10 @@ During execution a couple of things happen:
 * Get the path as described for `--config PATH`
 * If the program does not find said config file, it will create a default one
 * If `--create-config` is set, the program aborts here
-* The program reads `data.xml` in `<DataPath>` if it exists
+* The program reads `data.dat` in `<DataPath>` if it exists
 * The program gets all mod entries from the portal
-* If it finds a new or updated mod, it will add it to it's `data.xml` file
-  (it only saves the `data.xml` file about every 5 minutes)
+* If it finds a new or updated mod, it will add it to it's `data.dat` file
+  (it only saves the `data.dat` file about every 5 minutes)
 * The program determins which releases should be maintained for every mod
   (it enumerates the releases sorted by release date descending)
   * First checks against `<MinMaintainedReleases>`
@@ -58,6 +58,9 @@ During execution a couple of things happen:
 * If `<DeleteNoLongerMaintainedReleases>` is true,
   * The releases marked as not maintained should not exist in `<ModsPath>`.
     If they do, the program deletes them
+* If `<DeleteOldReleases>` is true,
+  * Every release that is either a no longer maintained factorio version
+    or no physically exists on the portal gets deleted
 
 # Installation
 
@@ -70,11 +73,17 @@ During execution a couple of things happen:
   Note that the program does not automatically create the directory for the config
   file when creating the file, to avoid it creating it somewhere you didn't want it
   to be
-* Launch the program with the argument `--create-config`
+* Somehow tell windows defender that this is a save program,
+  * By manually launching the program
+  * Or in the properties? Not sure
+* Optionally launch the program with the argument `--create-config`
+  so it doesn't try to use the default user name and user token
+* Or just launch the program and close it as soon as it created the config
+  (which is right at the start)
 * The default config file has now been created and you may configure it however you like
   (There is currently no documentation outside of this file for it's syntax and behavior)
-* Make sure to supply `<FactorioUserName>` and `<FactorioUserToken>`. The program currently
-  throws a generic `NotImplementedException` if they are invalid
+* Make sure to supply `<FactorioUserName>` and `<FactorioUserToken>`.
+  The program currently crashes if they are invalid
 * For future executions, don't provide the argument `--create-config` if you actually
   want it to do something
 
@@ -82,6 +91,12 @@ During execution a couple of things happen:
 
 I have no idea. Read this readme and use some kind of C# 8 .NET Core 3.1 compiler to
 compile the source code. Once i learn some stuff about linux i may add more instructions.
+
+# Future Releases
+
+I expect future releases of this program not to be very smooth.
+By that i mean that updating will be very manual and config file updating will also be
+manual. With time i might learn more and improve this however for now this is how it is.
 
 # Config File
 
@@ -94,10 +109,21 @@ Your User Token can be found at https://factorio.com/profile **and is sensitive 
 know what a reasonable number is, but for testing i had it set to 300 and it was fine.
 Be reasonable with it :D
 
-`<ModsPath>` and `<DataPath>` can be absolute or relative paths.
+`<ModsPath>`, `<DataPath>` and `<CrashDumpsPath>` can be absolute or relative paths.
 If they are relative, they are relative to the config file.
 
 # Git Submodules
 
 When cloning or pulling the repository,
 make sure to run `git submodule init` and `git submodule update`
+
+# Errors and Crashes and Reports
+
+If the program errors or crashes an exception is thrown.
+If this didn't happen during initialization the program catches those and writes them
+to the standard error stream and to a crash dump file in `<CrashDumpsPath>`.
+
+Since errors looks the same as crashes you kind of have to read those exceptions,
+but if it looks more like a crash or bug please create an issue on github with the crash dump attached.
+
+**The crash dump will never contain sensitive data!**
