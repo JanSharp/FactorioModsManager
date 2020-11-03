@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using FactorioModsManager.Infrastructure;
 using FactorioModsManager.Services.Implementations;
+using FluentAssertions;
 using NUnit.Framework;
 
 namespace FactorioModsManager.UnitTests.Services.Implementations
@@ -7,35 +10,35 @@ namespace FactorioModsManager.UnitTests.Services.Implementations
     [TestFixture]
     public class ArgsServiceTests
     {
+        const string InvalidArg = "--foo";
+
+        const string ConfigArg = "--config";
+        const string CreateConfigArg = "--create-config";
+        const string ExtractModsPathArg = "--extract-mods-path";
+        const string ModListPathArg = "--mod-list-path";
+        const string SaveFilePathArg = "--save-file-path";
+        const string ExtractModNameArg = "--extract-mod-name";
+        const string ExtractModNameShortArg = "-e";
+
+        const string ConfigExtraArg = @"C:\Test\Path\config.xml";
+        const string ExtractModsPathExtraArg = @"C:\Test\Path\ExtractedMods";
+        const string ModListPathExtraArg = @"C:\Test\Path\mod-list.json";
+        const string SaveFilePathExtraArg = @"C:\Test\Path\save.zip";
+        const string ExtractModNameExtraArgFoo = "FooMod";
+        const string ExtractModNameExtraArgBar = "BarMod";
+
+
         [Test]
-        public void Constructor_ConfigArgWithPath_ExtractPath()
+        public void ParseArgs_UnexpectedArg_ThrowException()
         {
             // Arrange
-            var expectedPath = @"C:\Test\Path\config.xml";
 
             // Act
-            var argsService = new ArgsService(new[]
+            static void Code()
             {
-               "--config",
-               expectedPath,
-            });
-            var actualPath = argsService.GetArgs().ConfigFilePath;
-
-            // Assert
-            Assert.That(actualPath, Is.EqualTo(expectedPath));
-        }
-
-        [Test]
-        public void Constructor_ConfigArgWithoutPath_ThrowException()
-        {
-            // Arrange
-
-            // Act
-            void Code()
-            {
-                var argsService = new ArgsService(new[]
+                var programArgs = ArgsService.ParseArgs(new[]
                 {
-                    "--config",
+                    InvalidArg,
                 });
             }
 
@@ -43,19 +46,391 @@ namespace FactorioModsManager.UnitTests.Services.Implementations
             Assert.That(Code, Throws.TypeOf<Exception>());
         }
 
+
         [Test]
-        public void Constructor_CreateConfigArg_SetCreateConfigToTrue()
+        public void ParseArgs_OnlyExtractModsPathSet_ThrowException()
         {
-            // Arrage
+            // Arrange
+            var args = new[]
+            {
+                ExtractModsPathArg,
+                ExtractModsPathExtraArg,
+            };
 
             // Act
-            var argsService = new ArgsService(new[]
-            {
-                "--create-config",
-            });
+            Action act = () => ArgsService.ParseArgs(args);
 
             // Assert
-            Assert.That(argsService.GetArgs().CreateConfig, Is.True);
+            act.Should().ThrowExactly<Exception>();
+        }
+
+        [Test]
+        public void ParseArgs_OnlyModListPathSet_ThrowException()
+        {
+            // Arrange
+            var args = new[]
+            {
+                ModListPathArg,
+                ModListPathExtraArg,
+            };
+
+            // Act
+            Action act = () => ArgsService.ParseArgs(args);
+
+            // Assert
+            act.Should().ThrowExactly<Exception>();
+        }
+
+        [Test]
+        public void ParseArgs_OnlySaveFilePathSet_ThrowException()
+        {
+            // Arrange
+            var args = new[]
+            {
+                SaveFilePathArg,
+                SaveFilePathExtraArg,
+            };
+
+            // Act
+            Action act = () => ArgsService.ParseArgs(args);
+
+            // Assert
+            act.Should().ThrowExactly<Exception>();
+        }
+
+        [Test]
+        public void ParseArgs_OnlyExtractModNameSet_ThrowException()
+        {
+            // Arrange
+            var args = new[]
+            {
+                ExtractModNameArg,
+                ExtractModNameExtraArgFoo,
+            };
+
+            // Act
+            Action act = () => ArgsService.ParseArgs(args);
+
+            // Assert
+            act.Should().ThrowExactly<Exception>();
+        }
+
+
+        [Test]
+        public void ParseArgs_ConfigArgWithoutPath_ThrowException()
+        {
+            // Arrange
+            var args = new[]
+            {
+                ConfigArg,
+            };
+
+            // Act
+            Action act = () => ArgsService.ParseArgs(args);
+
+            // Assert
+            act.Should().ThrowExactly<Exception>();
+        }
+
+        [Test]
+        public void ParseArgs_ExtractModsPathWithoutPath_ThrowException()
+        {
+            // Arrange
+            var args = new[]
+            {
+                ExtractModsPathArg,
+            };
+
+            // Act
+            Action act = () => ArgsService.ParseArgs(args);
+
+            // Assert
+            act.Should().ThrowExactly<Exception>();
+        }
+
+        [Test]
+        public void ParseArgs_ModListPathWithoutPath_ThrowException()
+        {
+            // Arrange
+            var args = new[]
+            {
+                ModListPathArg,
+            };
+
+            // Act
+            Action act = () => ArgsService.ParseArgs(args);
+
+            // Assert
+            act.Should().ThrowExactly<Exception>();
+        }
+
+        [Test]
+        public void ParseArgs_SaveFilePathWithoutPath_ThrowException()
+        {
+            // Arrange
+            var args = new[]
+            {
+                SaveFilePathArg,
+            };
+
+            // Act
+            Action act = () => ArgsService.ParseArgs(args);
+
+            // Assert
+            act.Should().ThrowExactly<Exception>();
+        }
+
+        [Test]
+        public void ParseArgs_ExtractModNameWithoutName_ThrowException()
+        {
+            // Arrange
+            var args = new[]
+            {
+                ExtractModNameArg,
+            };
+
+            // Act
+            Action act = () => ArgsService.ParseArgs(args);
+
+            // Assert
+            act.Should().ThrowExactly<Exception>();
+        }
+
+
+        [Test]
+        public void ParseArgs_ExtractModsPathAndModListPathAndSaveFilePathAndExtractModNameSet_ThrowException()
+        {
+            // Arrange
+            var args = new[]
+            {
+                ExtractModsPathArg,
+                ExtractModsPathExtraArg,
+                ModListPathArg,
+                ModListPathExtraArg,
+                SaveFilePathArg,
+                SaveFilePathExtraArg,
+                ExtractModNameArg,
+                ExtractModNameExtraArgFoo,
+            };
+
+            // Act
+            Action act = () => ArgsService.ParseArgs(args);
+
+            // Assert
+            act.Should().ThrowExactly<Exception>();
+        }
+
+        [Test]
+        public void ParseArgs_ExtractModsPathAndModListPathAndSaveFilePathSet_ThrowException()
+        {
+            // Arrange
+            var args = new[]
+            {
+                ExtractModsPathArg,
+                ExtractModsPathExtraArg,
+                ModListPathArg,
+                ModListPathExtraArg,
+                SaveFilePathArg,
+                SaveFilePathExtraArg,
+            };
+
+            // Act
+            Action act = () => ArgsService.ParseArgs(args);
+
+            // Assert
+            act.Should().ThrowExactly<Exception>();
+        }
+
+        [Test]
+        public void ParseArgs_ExtractModsPathAndModListPathAndExtractModNameSet_ThrowException()
+        {
+            // Arrange
+            var args = new[]
+            {
+                ExtractModsPathArg,
+                ExtractModsPathExtraArg,
+                ModListPathArg,
+                ModListPathExtraArg,
+                ExtractModNameArg,
+                ExtractModNameExtraArgFoo,
+            };
+
+            // Act
+            Action act = () => ArgsService.ParseArgs(args);
+
+            // Assert
+            act.Should().ThrowExactly<Exception>();
+        }
+
+        [Test]
+        public void ParseArgs_ExtractModsPathAndSaveFilePathAndExtractModNameSet_ThrowException()
+        {
+            // Arrange
+            var args = new[]
+            {
+                ExtractModsPathArg,
+                ExtractModsPathExtraArg,
+                SaveFilePathArg,
+                SaveFilePathExtraArg,
+                ExtractModNameArg,
+                ExtractModNameExtraArgFoo,
+            };
+
+            // Act
+            Action act = () => ArgsService.ParseArgs(args);
+
+            // Assert
+            act.Should().ThrowExactly<Exception>();
+        }
+
+
+        [Test]
+        public void ParseArgs_ConfigArgWithPath_GetPath()
+        {
+            // Arrage
+            var expected = new ProgramArgs()
+            {
+                ConfigFilePath = ConfigExtraArg,
+            };
+            var args = new[]
+            {
+                ConfigArg,
+                ConfigExtraArg,
+            };
+
+            // Act
+            var actual = ArgsService.ParseArgs(args);
+
+            // Assert
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        [Test]
+        public void ParseArgs_CreateConfigArg_SetCreateConfigToTrue()
+        {
+            // Arrage
+            var expected = new ProgramArgs()
+            {
+                CreateConfig = true,
+            };
+            var args = new[]
+            {
+                CreateConfigArg,
+            };
+
+            // Act
+            var actual = ArgsService.ParseArgs(args);
+
+            // Assert
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        [Test]
+        public void ParseArgs_ExtractModsPathAndModListPathSet_GetPaths()
+        {
+            // Arrage
+            var expected = new ProgramArgs()
+            {
+                ExtractModsPath = ExtractModsPathExtraArg,
+                ModListPath = ModListPathExtraArg,
+            };
+            var args = new[]
+            {
+                ExtractModsPathArg,
+                ExtractModsPathExtraArg,
+                ModListPathArg,
+                ModListPathExtraArg,
+            };
+
+            // Act
+            var actual = ArgsService.ParseArgs(args);
+
+            // Assert
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        [Test]
+        public void ParseArgs_ExtractModsPathAndSaveFilePathSet_GetPaths()
+        {
+            // Arrage
+            var expected = new ProgramArgs()
+            {
+                ExtractModsPath = ExtractModsPathExtraArg,
+                SaveFilePath = SaveFilePathExtraArg,
+            };
+            var args = new[]
+            {
+                ExtractModsPathArg,
+                ExtractModsPathExtraArg,
+                SaveFilePathArg,
+                SaveFilePathExtraArg,
+            };
+
+            // Act
+            var actual = ArgsService.ParseArgs(args);
+
+            // Assert
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        [Test]
+        public void ParseArgs_ExtractModsPathAnTwoExtractModNameSet_GetPathsAndModNames()
+        {
+            // Arrage
+            var expected = new ProgramArgs()
+            {
+                ExtractModsPath = ExtractModsPathExtraArg,
+                ModNamesToExtract = new List<string>()
+                {
+                    ExtractModNameExtraArgFoo,
+                    ExtractModNameExtraArgBar,
+                },
+            };
+            var args = new[]
+            {
+                ExtractModsPathArg,
+                ExtractModsPathExtraArg,
+                ExtractModNameArg,
+                ExtractModNameExtraArgFoo,
+                ExtractModNameArg,
+                ExtractModNameExtraArgBar,
+            };
+
+            // Act
+            var actual = ArgsService.ParseArgs(args);
+
+            // Assert
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        [Test]
+        public void ParseArgs_ExtractModsPathAnTwoExtractModNameSetUsingNormalAndShortArg_GetPathsAndModNames()
+        {
+            // Arrage
+            var expected = new ProgramArgs()
+            {
+                ExtractModsPath = ExtractModsPathExtraArg,
+                ModNamesToExtract = new List<string>()
+                {
+                    ExtractModNameExtraArgFoo,
+                    ExtractModNameExtraArgBar,
+                },
+            };
+            var args = new[]
+            {
+                ExtractModsPathArg,
+                ExtractModsPathExtraArg,
+                ExtractModNameArg,
+                ExtractModNameExtraArgFoo,
+                ExtractModNameShortArg,
+                ExtractModNameExtraArgBar,
+            };
+
+            // Act
+            var actual = ArgsService.ParseArgs(args);
+
+            // Assert
+            actual.Should().BeEquivalentTo(expected);
         }
     }
 }
