@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FactorioModPortalClient\FactorioModPortalClient\FactorioModPortalClient.csproj" />
+    <ProjectReference Include="..\FactorioSaveFileUtilities\FactorioSaveFileUtilities\FactorioSaveFileUtilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>

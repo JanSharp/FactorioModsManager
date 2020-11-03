@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using FactorioModPortalClient;
 using FactorioModsManager.Services;
 using FactorioModsManager.Services.Implementations;
+using FactorioSaveFileUtilities.Services;
+using FactorioSaveFileUtilities.Services.Implementations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FactorioModsManager
@@ -30,6 +32,8 @@ namespace FactorioModsManager
             serviceCollection.AddSingleton<IMainService, MainService>();
             serviceCollection.AddSingleton<IModsStorageService, ModsStorageService>();
             serviceCollection.AddSingleton<ICrashHandlerService, CrashHandlerService>();
+            serviceCollection.AddSingleton<ISaveFileReader, SaveFileReader>();
+            serviceCollection.AddSingleton<IExtractModsService, ExtractModsService>();
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
