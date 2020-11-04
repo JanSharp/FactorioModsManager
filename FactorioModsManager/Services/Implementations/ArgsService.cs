@@ -62,6 +62,10 @@ namespace FactorioModsManager.Services.Implementations
                         result.ModNamesToExtract.Add(args[i]);
                         break;
 
+                    case "--do-not-extract-dependencies":
+                        result.DoNotExtractDependencies = true;
+                        break;
+
                     default:
                         throw new Exception($"Unexpected cmd arg '{args[i]}'.");
                 }

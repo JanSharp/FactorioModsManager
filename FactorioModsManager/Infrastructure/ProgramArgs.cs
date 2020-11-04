@@ -18,5 +18,7 @@ namespace FactorioModsManager.Infrastructure
         public string? SaveFilePath { get; set; }
 
         public List<string>? ModNamesToExtract { get; set; }
+
+        public bool DoNotExtractDependencies { get; set; }
     }
 }

@@ -19,6 +19,7 @@ namespace FactorioModsManager.UnitTests.Services.Implementations
         const string SaveFilePathArg = "--save-file-path";
         const string ExtractModNameArg = "--extract-mod-name";
         const string ExtractModNameShortArg = "-e";
+        const string DoNotExtractDependenciesArg = "--do-not-extract-dependencies";
 
         const string ConfigExtraArg = @"C:\Test\Path\config.xml";
         const string ExtractModsPathExtraArg = @"C:\Test\Path\ExtractedMods";
@@ -424,6 +425,26 @@ namespace FactorioModsManager.UnitTests.Services.Implementations
                 ExtractModNameExtraArgFoo,
                 ExtractModNameShortArg,
                 ExtractModNameExtraArgBar,
+            };
+
+            // Act
+            var actual = ArgsService.ParseArgs(args);
+
+            // Assert
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        [Test]
+        public void ParseArgs_DoNotExtractDependenciesArg_SetDoNotExtractDependenciesToTrue()
+        {
+            // Arrage
+            var expected = new ProgramArgs()
+            {
+                DoNotExtractDependencies = true,
+            };
+            var args = new[]
+            {
+                DoNotExtractDependenciesArg,
             };
 
             // Act
