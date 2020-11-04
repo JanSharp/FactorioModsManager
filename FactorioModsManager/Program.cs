@@ -37,6 +37,8 @@ namespace FactorioModsManager
             serviceCollection.AddSingleton<ISaveFileReader, SaveFileReader>();
             serviceCollection.AddSingleton<IExtractModsService, ExtractModsService>(sp
                 => ActivatorUtilities.CreateInstance<ExtractModsService>(sp));
+            serviceCollection.AddSingleton<IModListService, ModListService>(sp
+                => ActivatorUtilities.CreateInstance<ModListService>(sp));
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
