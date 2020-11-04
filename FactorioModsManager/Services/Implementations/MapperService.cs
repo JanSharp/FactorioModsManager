@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using FactorioModPortalClient;
 using FactorioModsManager.Infrastructure;
+using FactorioSaveFileUtilities.Infrastructure;
 
 namespace FactorioModsManager.Services.Implementations
 {
@@ -69,6 +70,14 @@ namespace FactorioModsManager.Services.Implementations
             result.Sha1 = release.Sha1;
 
             return result;
+        }
+
+        public ReleaseDataForExtracting MapToReleaseData(ModInSaveData modInSaveData)
+        {
+            return new ReleaseDataForExtracting(
+                modInSaveData.Name,
+                new FactorioVersion(modInSaveData.Major, modInSaveData.Minor, modInSaveData.Patch),
+                modInSaveData.CRC);
         }
     }
 }

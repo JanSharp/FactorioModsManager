@@ -1,4 +1,11 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using FactorioModsManager.Infrastructure;
+using FactorioModsManager.Infrastructure.Interfaces;
+using FactorioSaveFileUtilities.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FactorioModsManager.Services.Implementations
@@ -7,13 +14,22 @@ namespace FactorioModsManager.Services.Implementations
     {
         private readonly ExtractModsService extractModsService;
         private readonly IArgsService argsService;
+        private readonly IMapperService mapperService;
+        private readonly IModsStorageService modsStorageService;
+        private readonly ISaveFileReader saveFileReader;
 
         [ActivatorUtilitiesConstructor]
         public ExtractModsService(
-            IArgsService argsService)
+            IArgsService argsService,
+            IMapperService mapperService,
+            IModsStorageService modsStorageService,
+            ISaveFileReader saveFileReader)
         {
             extractModsService = this;
             this.argsService = argsService;
+            this.mapperService = mapperService;
+            this.modsStorageService = modsStorageService;
+            this.saveFileReader = saveFileReader;
         }
 
         // for unit testing
@@ -27,16 +43,51 @@ namespace FactorioModsManager.Services.Implementations
 
         public ExtractModsService(
             ExtractModsService extractModsService = null,
-            IArgsService argsService = null)
+            IArgsService argsService = null,
+            IMapperService mapperService = null,
+            IModsStorageService modsStorageService = null,
+            ISaveFileReader saveFileReader = null)
+            :
+            this(argsService,
+                mapperService,
+                modsStorageService,
+                saveFileReader)
         {
             this.extractModsService = extractModsService;
-            this.argsService = argsService;
         }
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
         public async Task RunAsync()
         {
 
+        }
+
+        public List<ReleaseDataForExtracting> GetReleasesToExtract(ProgramArgs programArgs)
+        {
+            if (programArgs.ModListPath != null)
+            {
+
+            }
+
+            if (programArgs.SaveFilePath != null)
+            {
+                return GetReleasesFromSaveFile(programArgs.SaveFilePath);
+            }
+
+            if (programArgs.ModNamesToExtract != null)
+            {
+
+            }
+
+            throw new ImpossibleException($"{nameof(ProgramArgs.ModListPath)}, {nameof(ProgramArgs.SaveFilePath)} and " +
+                $"{nameof(ProgramArgs.ModNamesToExtract)} are all null when trying to get all releases to extract.");
+        }
+
+        public List<ReleaseDataForExtracting> GetReleasesFromSaveFile(string saveFilePath)
+        {
+            using var fileStream = new FileStream(saveFilePath, FileMode.Open, FileAccess.Read);
+            var saveFileData = saveFileReader.ReadSaveFile(fileStream);
+            return saveFileData.ModsInSave.Select(m => mapperService.MapToReleaseData(m)).ToList();
         }
     }
 }
