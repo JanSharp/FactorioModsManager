@@ -109,5 +109,15 @@ namespace FactorioModsManager.Services.Implementations
             if (allStoredReleases.TryGetValue(modName, out var releases))
                 result.AddRange(releases);
         }
+
+        public void ExtractRelease(ReleaseData release, string extractModsPath)
+        {
+            string fileName = release.GetFileName();
+            string source = Path.Combine(modsPath, fileName);
+            string dest = Path.Combine(extractModsPath, fileName);
+
+            if (!File.Exists(dest))
+                File.Copy(source, dest);
+        }
     }
 }
