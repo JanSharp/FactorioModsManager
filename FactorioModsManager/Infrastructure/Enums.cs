@@ -31,4 +31,12 @@ namespace FactorioModsManager.Infrastructure
         [EnumMember]
         Greater,
     }
+
+    public enum ExecutionType
+    {
+        None,
+        Sync,
+        CreateConfig,
+        ExtractMods,
+    }
 }

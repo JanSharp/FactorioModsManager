@@ -93,5 +93,16 @@ namespace FactorioModsManager.Services.Implementations
 
             return result;
         }
+
+        public ExecutionType GetExecutionType(ProgramArgs programArgs)
+        {
+            if (programArgs.CreateConfig)
+                return ExecutionType.CreateConfig;
+
+            if (programArgs.ExtractModsPath != null)
+                return ExecutionType.ExtractMods;
+
+            return ExecutionType.Sync;
+        }
     }
 }

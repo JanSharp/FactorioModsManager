@@ -4,33 +4,61 @@ using System.Linq;
 using System.Threading.Tasks;
 using FactorioModPortalClient;
 using FactorioModsManager.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FactorioModsManager.Services.Implementations
 {
-    public class MainService : IMainService
+    public class SyncModsWithPortalService : ISyncModsWithPortalService
     {
-        private readonly IArgsService argsService;
+        private readonly SyncModsWithPortalService mainService;
         private readonly IConfigService configService;
         private readonly IProgramDataService programDataService;
         private readonly IMapperService mapperService;
         private readonly IModPortalClient client;
         private readonly IModsStorageService modsStorageService;
 
-        public MainService(
-            IArgsService argsService,
+        [ActivatorUtilitiesConstructor]
+        public SyncModsWithPortalService(
             IConfigService configService,
             IProgramDataService programDataService,
             IMapperService mapperService,
             IModPortalClient client,
             IModsStorageService modsStorageService)
         {
-            this.argsService = argsService;
+            mainService = this;
             this.configService = configService;
             this.programDataService = programDataService;
             this.mapperService = mapperService;
             this.client = client;
             this.modsStorageService = modsStorageService;
         }
+
+        // for unit testing
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+        public SyncModsWithPortalService()
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+        {
+
+        }
+
+        public SyncModsWithPortalService(object foo = null,
+            SyncModsWithPortalService mainService = null,
+            IConfigService configService = null,
+            IProgramDataService programDataService = null,
+            IMapperService mapperService = null,
+            IModPortalClient client = null,
+            IModsStorageService modsStorageService = null)
+            :
+            this(configService,
+                programDataService,
+                mapperService,
+                client,
+                modsStorageService)
+        {
+            this.mainService = mainService;
+        }
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
         /* concept:
          * 
@@ -50,9 +78,6 @@ namespace FactorioModsManager.Services.Implementations
 
         public async Task RunAsync()
         {
-            if (argsService.GetArgs().CreateConfig)
-                return;
-
             Console.WriteLine("Syncronizing with mod portal...");
 
             ProgramData programData = programDataService.GetProgramData();
@@ -89,20 +114,20 @@ namespace FactorioModsManager.Services.Implementations
 
                     if ((entry.LatestRelease?.ReleasedAt ?? null) != (modData.LatestRelease?.ReleasedAt ?? null))
                     {
-                        SyncMod(entry, await client.GetResultEntryFullAsync(entry.Name), modData);
+                        mainService.SyncMod(entry, await client.GetResultEntryFullAsync(entry.Name), modData);
                         Console.WriteLine($"Changed {entry.Name}.");
                         SaveChanges();
                     }
                     else
                     {
-                        SyncModPartial(entry, modData);
+                        mainService.SyncModPartial(entry, modData);
                     }
                 }
                 else
                 {
                     var entryFull = await client.GetResultEntryFullAsync(entry.Name);
                     modData = mapperService.MapToModData(entryFull);
-                    SyncMod(entry, entryFull, modData);
+                    mainService.SyncMod(entry, entryFull, modData);
                     programData.Mods.Add(modData.Name, modData);
                     Console.WriteLine($"Added   {entry.Name}.");
                     SaveChanges();
@@ -132,7 +157,7 @@ namespace FactorioModsManager.Services.Implementations
 
             List<FactorioVersion> cachedReleases = new List<FactorioVersion>();
             foreach (var mod in programData.Mods.Values)
-                await SyncMaintainedReleasesAsync(mod, maintainedVersions, cachedReleases);
+                await mainService.SyncMaintainedReleasesAsync(mod, maintainedVersions, cachedReleases);
         }
 
         public void SyncModPartial(ResultEntry portalEntryFull, ModData modData)
@@ -206,7 +231,7 @@ namespace FactorioModsManager.Services.Implementations
 
                             if (noMoreMaintainedReleases)
                             {
-                                EnsureReleaseIsNotMaintained(release, shouldDelete);
+                                mainService.EnsureReleaseIsNotMaintained(release, shouldDelete);
                                 continue;
                             }
 
@@ -215,14 +240,14 @@ namespace FactorioModsManager.Services.Implementations
                             if (maintainedVersion.MinMaintainedReleases.HasValue
                                 && count <= maintainedVersion.MinMaintainedReleases.Value)
                             {
-                                await EnsureReleaseIsMaintainedAsync(release);
+                                await mainService.EnsureReleaseIsMaintainedAsync(release);
                                 continue;
                             }
 
                             if (maintainedVersion.MaxMaintainedReleases.HasValue
                                 && count > maintainedVersion.MaxMaintainedReleases.Value)
                             {
-                                EnsureReleaseIsNotMaintained(release, shouldDelete);
+                                mainService.EnsureReleaseIsNotMaintained(release, shouldDelete);
                                 noMoreMaintainedReleases = true;
                                 continue;
                             }
@@ -230,12 +255,12 @@ namespace FactorioModsManager.Services.Implementations
                             if (maintainedVersion.MaintainedDays.HasValue
                                 && (DateTime.Now - release.ReleasedAt).Days > (int)maintainedVersion.MaintainedDays.Value)
                             {
-                                EnsureReleaseIsNotMaintained(release, shouldDelete);
+                                mainService.EnsureReleaseIsNotMaintained(release, shouldDelete);
                                 noMoreMaintainedReleases = true;
                                 continue;
                             }
 
-                            await EnsureReleaseIsMaintainedAsync(release);
+                            await mainService.EnsureReleaseIsMaintainedAsync(release);
                         }
                     }
                 }
@@ -244,14 +269,14 @@ namespace FactorioModsManager.Services.Implementations
             shouldDelete = configService.GetConfig().DeleteOldReleases;
             foreach (var deletedVersion in cachedReleases)
             {
-                UnmaintainRelease(mod.Name, deletedVersion, shouldDelete);
+                mainService.UnmaintainRelease(mod.Name, deletedVersion, shouldDelete);
             }
         }
 
         public async Task EnsureReleaseIsMaintainedAsync(ReleaseData release)
         {
             if (!modsStorageService.ReleaseIsCached(release))
-                await MaintainReleaseAsync(release);
+                await mainService.MaintainReleaseAsync(release);
         }
 
         public async Task MaintainReleaseAsync(ReleaseData release)
@@ -259,7 +284,7 @@ namespace FactorioModsManager.Services.Implementations
             if (!modsStorageService.ReleaseIsStored(release))
             {
                 Console.WriteLine($"Downloading {release.GetFileName()}.");
-                var bytes = await DownloadReleaseAsync(release);
+                var bytes = await mainService.DownloadReleaseAsync(release);
                 modsStorageService.StoreRelease(release, bytes);
             }
         }
@@ -283,12 +308,12 @@ namespace FactorioModsManager.Services.Implementations
         public void EnsureReleaseIsNotMaintained(ReleaseData release, bool shouldDelete)
         {
             if (modsStorageService.ReleaseIsCached(release))
-                UnmaintainRelease(release, shouldDelete);
+                mainService.UnmaintainRelease(release, shouldDelete);
         }
 
         public void UnmaintainRelease(ReleaseData release, bool shouldDelete)
         {
-            UnmaintainRelease(release.Mod.Name, release.Version, shouldDelete);
+            mainService.UnmaintainRelease(release.Mod.Name, release.Version, shouldDelete);
         }
 
         public void UnmaintainRelease(string modName, FactorioVersion version, bool shouldDelete)

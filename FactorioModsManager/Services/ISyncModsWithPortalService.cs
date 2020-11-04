@@ -2,7 +2,7 @@
 
 namespace FactorioModsManager.Services
 {
-    public interface IMainService
+    public interface ISyncModsWithPortalService
     {
         Task RunAsync();
     }

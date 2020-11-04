@@ -7,7 +7,7 @@ using NUnit.Framework;
 namespace FactorioModsManager.UnitTests.Services.Implementations
 {
     [TestFixture]
-    public class MainServiceTests
+    public class SyncModsWithPortalServiceTests
     {
         [Test]
         public void UnmaintainRelease_ShouldDeleteAndIsStored_DiscardRelease()
@@ -21,7 +21,7 @@ namespace FactorioModsManager.UnitTests.Services.Implementations
             var modsStorageService = new Mock<IModsStorageService>();
             modsStorageService.Setup(mss => mss.ReleaseIsStored(modName, version)).Returns(isStored);
 
-            var mainService = new MainService(null, null, null, null, null, modsStorageService.Object);
+            var mainService = new SyncModsWithPortalService(modsStorageService: modsStorageService.Object);
 
             // Act
             mainService.UnmaintainRelease(modName, version, shouldDelete);
@@ -42,7 +42,7 @@ namespace FactorioModsManager.UnitTests.Services.Implementations
             var modsStorageService = new Mock<IModsStorageService>();
             modsStorageService.Setup(mss => mss.ReleaseIsStored(modName, version)).Returns(isStored);
 
-            var mainService = new MainService(null, null, null, null, null, modsStorageService.Object);
+            var mainService = new SyncModsWithPortalService(modsStorageService: modsStorageService.Object);
 
             // Act
             mainService.UnmaintainRelease(modName, version, shouldDelete);
@@ -63,7 +63,7 @@ namespace FactorioModsManager.UnitTests.Services.Implementations
             var modsStorageService = new Mock<IModsStorageService>();
             modsStorageService.Setup(mss => mss.ReleaseIsStored(modName, version)).Returns(isStored);
 
-            var mainService = new MainService(null, null, null, null, null, modsStorageService.Object);
+            var mainService = new SyncModsWithPortalService(modsStorageService: modsStorageService.Object);
 
             // Act
             mainService.UnmaintainRelease(modName, version, shouldDelete);
@@ -84,13 +84,37 @@ namespace FactorioModsManager.UnitTests.Services.Implementations
             var modsStorageService = new Mock<IModsStorageService>();
             modsStorageService.Setup(mss => mss.ReleaseIsStored(modName, version)).Returns(isStored);
 
-            var mainService = new MainService(null, null, null, null, null, modsStorageService.Object);
+            var mainService = new SyncModsWithPortalService(modsStorageService: modsStorageService.Object);
 
             // Act
             mainService.UnmaintainRelease(modName, version, shouldDelete);
 
             // Assert
             modsStorageService.Verify(mss => mss.DiscardRelease(modName, version), Times.Never);
+        }
+
+        [Test]
+        public void UnmaintainRelease_Overload1()
+        {
+            // Arrage
+            var release = new ReleaseData()
+            {
+                Mod = new ModData()
+                {
+                    Name = "ModName",
+                },
+                Version = new FactorioVersion(1, 2, 3),
+            };
+            var shouldDelete = true;
+
+            var mainServiceMock = new Mock<SyncModsWithPortalService>();
+            var mainService = new SyncModsWithPortalService(mainService: mainServiceMock.Object);
+
+            // Act
+            mainService.UnmaintainRelease(release, shouldDelete);
+
+            // Assert
+            mainServiceMock.Verify(s => s.UnmaintainRelease(release.Mod.Name, release.Version, shouldDelete));
         }
     }
 }
