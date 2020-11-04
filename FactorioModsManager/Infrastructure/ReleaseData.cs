@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using FactorioModsManager.Infrastructure.Interfaces;
 
 namespace FactorioModsManager.Infrastructure
 {
     [DataContract(IsReference = true)]
-    public class ReleaseData : IExtensibleDataObject
+    public class ReleaseData : IExtensibleDataObject, IReleaseDataForModsStorage
     {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public ReleaseData()
@@ -27,6 +28,9 @@ namespace FactorioModsManager.Infrastructure
 
         [DataMember(/*IsRequired = true*/)]
         public ModData Mod { get; set; }
+
+        [IgnoreDataMember]
+        string IReleaseDataForModsStorage.ModName => Mod.Name;
 
         /// <summary>
         /// Path to download for a mod. starts with "/download" and does not include a full url.

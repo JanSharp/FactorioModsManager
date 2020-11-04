@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using FactorioModsManager.Infrastructure;
+using FactorioModsManager.Infrastructure.Interfaces;
 
 namespace FactorioModsManager.Services.Implementations
 {
@@ -65,15 +66,15 @@ namespace FactorioModsManager.Services.Implementations
                 Directory.CreateDirectory(folder);
         }
 
-        public bool ReleaseIsCached(ReleaseData release)
+        public bool ReleaseIsCached(IReleaseDataForModsStorage release)
         {
-            return allStoredReleases.TryGetValue(release.Mod.Name, out var releases)
+            return allStoredReleases.TryGetValue(release.ModName, out var releases)
                 && releases.Contains(release.Version);
         }
 
-        public bool ReleaseIsStored(ReleaseData release)
+        public bool ReleaseIsStored(IReleaseDataForModsStorage release)
         {
-            return ReleaseIsStored(release.Mod.Name, release.Version);
+            return ReleaseIsStored(release.ModName, release.Version);
         }
 
         public bool ReleaseIsStored(string modName, FactorioVersion version)
@@ -81,15 +82,15 @@ namespace FactorioModsManager.Services.Implementations
             return File.Exists(Path.Combine(modsPath, ReleaseData.GetFileName(modName, version)));
         }
 
-        public void StoreRelease(ReleaseData release, byte[] bytes)
+        public void StoreRelease(IReleaseDataForModsStorage release, byte[] bytes)
         {
             File.WriteAllBytes(Path.Combine(modsPath, release.GetFileName()), bytes);
-            AddToAllStoredReleases(release.Mod.Name, release.Version);
+            AddToAllStoredReleases(release.ModName, release.Version);
         }
 
-        public void DiscardRelease(ReleaseData release)
+        public void DiscardRelease(IReleaseDataForModsStorage release)
         {
-            DiscardRelease(release.Mod.Name, release.Version);
+            DiscardRelease(release.ModName, release.Version);
         }
 
         public void DiscardRelease(string modName, FactorioVersion version)
@@ -110,7 +111,7 @@ namespace FactorioModsManager.Services.Implementations
                 result.AddRange(releases);
         }
 
-        public void ExtractRelease(ReleaseData release, string extractModsPath)
+        public void ExtractRelease(IReleaseDataForModsStorage release, string extractModsPath)
         {
             string fileName = release.GetFileName();
             string source = Path.Combine(modsPath, fileName);
