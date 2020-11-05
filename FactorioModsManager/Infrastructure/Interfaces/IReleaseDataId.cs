@@ -1,6 +1,6 @@
 ﻿namespace FactorioModsManager.Infrastructure.Interfaces
 {
-    public interface IReleaseDataForModsStorage
+    public interface IReleaseDataId
     {
         string ModName { get; }
 

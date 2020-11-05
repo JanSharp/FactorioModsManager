@@ -16,6 +16,6 @@ namespace FactorioModsManager.Infrastructure
             Mods = mods;
         }
 
-        List<ModListJsonItem> Mods { get; set; }
+        public List<ModListJsonItem> Mods { get; set; }
     }
 }

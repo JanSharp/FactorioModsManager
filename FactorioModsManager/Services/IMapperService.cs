@@ -9,6 +9,6 @@ namespace FactorioModsManager.Services
         ModData MapToModData(ResultEntry entry, ModData result);
         ModData MapToModData(ResultEntryFull entry, ModData? result = null);
         ReleaseData MapToReleaseData(ModData mod, Release release, ReleaseData? result = null);
-        ReleaseDataForExtracting MapToReleaseData(ModInSaveData modInSaveData);
+        ReleaseDataId MapToReleaseDataId(ModInSaveData modInSaveData);
     }
 }

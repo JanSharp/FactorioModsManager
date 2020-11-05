@@ -270,7 +270,7 @@ namespace FactorioModsManager.Services.Implementations
             shouldDelete = configService.GetConfig().DeleteOldReleases;
             foreach (var deletedVersion in cachedReleases)
             {
-                mainService.UnmaintainRelease(new ReleaseDataForModsStorage(mod.Name, deletedVersion), shouldDelete);
+                mainService.UnmaintainRelease(new ReleaseDataId(mod.Name, deletedVersion), shouldDelete);
             }
         }
 
@@ -306,13 +306,13 @@ namespace FactorioModsManager.Services.Implementations
             }
         }
 
-        public void EnsureReleaseIsNotMaintained(IReleaseDataForModsStorage release, bool shouldDelete)
+        public void EnsureReleaseIsNotMaintained(IReleaseDataId release, bool shouldDelete)
         {
             if (modsStorageService.ReleaseIsCached(release))
                 mainService.UnmaintainRelease(release, shouldDelete);
         }
 
-        public void UnmaintainRelease(IReleaseDataForModsStorage release, bool shouldDelete)
+        public void UnmaintainRelease(IReleaseDataId release, bool shouldDelete)
         {
             if (shouldDelete && modsStorageService.ReleaseIsStored(release))
             {

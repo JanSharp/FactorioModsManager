@@ -2,9 +2,9 @@
 
 namespace FactorioModsManager.Infrastructure
 {
-    public struct ReleaseDataForModsStorage : IReleaseDataForModsStorage
+    public struct ReleaseDataId : IReleaseDataId
     {
-        public ReleaseDataForModsStorage(string modName, FactorioVersion version)
+        public ReleaseDataId(string modName, FactorioVersion version)
         {
             ModName = modName;
             Version = version;

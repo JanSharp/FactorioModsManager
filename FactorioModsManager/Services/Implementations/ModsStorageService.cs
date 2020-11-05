@@ -66,24 +66,24 @@ namespace FactorioModsManager.Services.Implementations
                 Directory.CreateDirectory(folder);
         }
 
-        public bool ReleaseIsCached(IReleaseDataForModsStorage release)
+        public bool ReleaseIsCached(IReleaseDataId release)
         {
             return allStoredReleases.TryGetValue(release.ModName, out var releases)
                 && releases.Contains(release.Version);
         }
 
-        public bool ReleaseIsStored(IReleaseDataForModsStorage release)
+        public bool ReleaseIsStored(IReleaseDataId release)
         {
             return File.Exists(Path.Combine(modsPath, ReleaseData.GetFileName(release.ModName, release.Version)));
         }
 
-        public void StoreRelease(IReleaseDataForModsStorage release, byte[] bytes)
+        public void StoreRelease(IReleaseDataId release, byte[] bytes)
         {
             File.WriteAllBytes(Path.Combine(modsPath, release.GetFileName()), bytes);
             AddToAllStoredReleases(release.ModName, release.Version);
         }
 
-        public void DiscardRelease(IReleaseDataForModsStorage release)
+        public void DiscardRelease(IReleaseDataId release)
         {
             File.Delete(Path.Combine(modsPath, ReleaseData.GetFileName(release.ModName, release.Version)));
             RemoveFromAllStoredReleases(release.ModName, release.Version);
@@ -96,7 +96,7 @@ namespace FactorioModsManager.Services.Implementations
                 result.AddRange(releases);
         }
 
-        public void ExtractRelease(IReleaseDataForModsStorage release, string extractModsPath)
+        public void ExtractRelease(IReleaseDataId release, string extractModsPath)
         {
             string fileName = release.GetFileName();
             string source = Path.Combine(modsPath, fileName);

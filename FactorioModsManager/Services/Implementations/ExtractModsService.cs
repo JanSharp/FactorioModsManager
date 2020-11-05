@@ -1,10 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using FactorioModsManager.Infrastructure;
-using FactorioModsManager.Infrastructure.Interfaces;
 using FactorioSaveFileUtilities.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,6 +14,7 @@ namespace FactorioModsManager.Services.Implementations
         private readonly IArgsService argsService;
         private readonly IMapperService mapperService;
         private readonly IModsStorageService modsStorageService;
+        private readonly IModListService modListService;
         private readonly ISaveFileReader saveFileReader;
 
         [ActivatorUtilitiesConstructor]
@@ -23,12 +22,14 @@ namespace FactorioModsManager.Services.Implementations
             IArgsService argsService,
             IMapperService mapperService,
             IModsStorageService modsStorageService,
+            IModListService modListService,
             ISaveFileReader saveFileReader)
         {
             extractModsService = this;
             this.argsService = argsService;
             this.mapperService = mapperService;
             this.modsStorageService = modsStorageService;
+            this.modListService = modListService;
             this.saveFileReader = saveFileReader;
         }
 
@@ -46,11 +47,13 @@ namespace FactorioModsManager.Services.Implementations
             IArgsService argsService = null,
             IMapperService mapperService = null,
             IModsStorageService modsStorageService = null,
+            IModListService modListService = null,
             ISaveFileReader saveFileReader = null)
             :
             this(argsService,
                 mapperService,
                 modsStorageService,
+                modListService,
                 saveFileReader)
         {
             this.extractModsService = extractModsService;
@@ -62,7 +65,7 @@ namespace FactorioModsManager.Services.Implementations
 
         }
 
-        public List<ReleaseDataForExtracting> GetReleasesToExtract(ProgramArgs programArgs)
+        public List<ReleaseDataId> GetReleasesToExtract(ProgramArgs programArgs)
         {
             if (programArgs.ModListPath != null)
             {
@@ -83,11 +86,24 @@ namespace FactorioModsManager.Services.Implementations
                 $"{nameof(ProgramArgs.ModNamesToExtract)} are all null when trying to get all releases to extract.");
         }
 
-        public List<ReleaseDataForExtracting> GetReleasesFromSaveFile(string saveFilePath)
+        public List<ReleaseDataId> GetReleasesFromModList(string modListPath)
+        {
+            var bytes = File.ReadAllBytes(modListPath);
+            var modListJson = modListService.Deserialize(bytes);
+            return modListJson.Mods.Select(m => GetReleaseDataId(m)).ToList();
+        }
+
+        public ReleaseDataId GetReleaseDataId(ModListJsonItem modListJsonItem)
+        {
+            // TODO: add default version resolving
+            return new ReleaseDataId(modListJsonItem.Name, modListJsonItem.Version);
+        }
+
+        public List<ReleaseDataId> GetReleasesFromSaveFile(string saveFilePath)
         {
             using var fileStream = new FileStream(saveFilePath, FileMode.Open, FileAccess.Read);
             var saveFileData = saveFileReader.ReadSaveFile(fileStream);
-            return saveFileData.ModsInSave.Select(m => mapperService.MapToReleaseData(m)).ToList();
+            return saveFileData.ModsInSave.Select(m => mapperService.MapToReleaseDataId(m)).ToList();
         }
     }
 }

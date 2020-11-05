@@ -6,7 +6,7 @@ using FactorioModsManager.Infrastructure.Interfaces;
 namespace FactorioModsManager.Infrastructure
 {
     [DataContract(IsReference = true)]
-    public class ReleaseData : IExtensibleDataObject, IReleaseDataForModsStorage
+    public class ReleaseData : IExtensibleDataObject, IReleaseDataId
     {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public ReleaseData()
@@ -30,7 +30,7 @@ namespace FactorioModsManager.Infrastructure
         public ModData Mod { get; set; }
 
         [IgnoreDataMember]
-        string IReleaseDataForModsStorage.ModName => Mod.Name;
+        string IReleaseDataId.ModName => Mod.Name;
 
         /// <summary>
         /// Path to download for a mod. starts with "/download" and does not include a full url.

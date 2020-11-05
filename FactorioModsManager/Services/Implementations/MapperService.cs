@@ -72,12 +72,11 @@ namespace FactorioModsManager.Services.Implementations
             return result;
         }
 
-        public ReleaseDataForExtracting MapToReleaseData(ModInSaveData modInSaveData)
+        public ReleaseDataId MapToReleaseDataId(ModInSaveData modInSaveData)
         {
-            return new ReleaseDataForExtracting(
+            return new ReleaseDataId(
                 modInSaveData.Name,
-                new FactorioVersion(modInSaveData.Major, modInSaveData.Minor, modInSaveData.Patch),
-                modInSaveData.CRC);
+                new FactorioVersion(modInSaveData.Major, modInSaveData.Minor, modInSaveData.Patch));
         }
     }
 }
