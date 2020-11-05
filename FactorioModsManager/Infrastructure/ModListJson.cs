@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace FactorioModsManager.Infrastructure
 {
@@ -16,6 +17,7 @@ namespace FactorioModsManager.Infrastructure
             Mods = mods;
         }
 
+        [JsonPropertyName("mods")]
         public List<ModListJsonItem> Mods { get; set; }
     }
 }

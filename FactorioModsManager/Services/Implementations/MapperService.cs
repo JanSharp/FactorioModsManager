@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using FactorioModPortalClient;
 using FactorioModsManager.Infrastructure;
+using FactorioModsManager.Infrastructure.Interfaces;
 using FactorioSaveFileUtilities.Infrastructure;
 
 namespace FactorioModsManager.Services.Implementations
@@ -77,6 +78,18 @@ namespace FactorioModsManager.Services.Implementations
             return new ReleaseDataId(
                 modInSaveData.Name,
                 new FactorioVersion(modInSaveData.Major, modInSaveData.Minor, modInSaveData.Patch));
+        }
+
+        public IReleaseDataUnresolvedId MapToIReleaseDataUnresolvedId(ModListJsonItem modListJsonItem)
+        {
+            if (modListJsonItem.Version == null)
+            {
+                return new ReleaseDataUnresolvedId(modListJsonItem.Name);
+            }
+            else
+            {
+                return new ReleaseDataId(modListJsonItem.Name, modListJsonItem.Version);
+            }
         }
     }
 }

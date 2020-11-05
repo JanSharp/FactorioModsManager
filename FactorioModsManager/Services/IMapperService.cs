@@ -1,5 +1,6 @@
 ﻿using FactorioModPortalClient;
 using FactorioModsManager.Infrastructure;
+using FactorioModsManager.Infrastructure.Interfaces;
 using FactorioSaveFileUtilities.Infrastructure;
 
 namespace FactorioModsManager.Services
@@ -10,5 +11,6 @@ namespace FactorioModsManager.Services
         ModData MapToModData(ResultEntryFull entry, ModData? result = null);
         ReleaseData MapToReleaseData(ModData mod, Release release, ReleaseData? result = null);
         ReleaseDataId MapToReleaseDataId(ModInSaveData modInSaveData);
+        IReleaseDataUnresolvedId MapToIReleaseDataUnresolvedId(ModListJsonItem modListJsonItem);
     }
 }

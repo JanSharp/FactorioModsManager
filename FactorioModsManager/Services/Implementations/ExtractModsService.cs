@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using FactorioModsManager.Infrastructure;
+using FactorioModsManager.Infrastructure.Interfaces;
 using FactorioSaveFileUtilities.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -62,10 +63,10 @@ namespace FactorioModsManager.Services.Implementations
 
         public async Task RunAsync()
         {
-
+            var releases = GetReleasesToExtract(argsService.GetArgs());
         }
 
-        public List<ReleaseDataId> GetReleasesToExtract(ProgramArgs programArgs)
+        public List<IReleaseDataUnresolvedId> GetReleasesToExtract(ProgramArgs programArgs)
         {
             if (programArgs.ModListPath != null)
             {
@@ -79,31 +80,37 @@ namespace FactorioModsManager.Services.Implementations
 
             if (programArgs.ModNamesToExtract != null)
             {
-
+                return GetReleasesFromModNamesToExtract(programArgs.ModNamesToExtract);
             }
 
             throw new ImpossibleException($"{nameof(ProgramArgs.ModListPath)}, {nameof(ProgramArgs.SaveFilePath)} and " +
                 $"{nameof(ProgramArgs.ModNamesToExtract)} are all null when trying to get all releases to extract.");
         }
 
-        public List<ReleaseDataId> GetReleasesFromModList(string modListPath)
+        public List<IReleaseDataUnresolvedId> GetReleasesFromModList(string modListPath)
         {
             var bytes = File.ReadAllBytes(modListPath);
             var modListJson = modListService.Deserialize(bytes);
-            return modListJson.Mods.Select(m => GetReleaseDataId(m)).ToList();
+            return modListJson.Mods
+                .Where(m => m.Enabled)
+                .Select(m => mapperService.MapToIReleaseDataUnresolvedId(m))
+                .ToList();
         }
 
-        public ReleaseDataId GetReleaseDataId(ModListJsonItem modListJsonItem)
-        {
-            // TODO: add default version resolving
-            return new ReleaseDataId(modListJsonItem.Name, modListJsonItem.Version);
-        }
-
-        public List<ReleaseDataId> GetReleasesFromSaveFile(string saveFilePath)
+        public List<IReleaseDataUnresolvedId> GetReleasesFromSaveFile(string saveFilePath)
         {
             using var fileStream = new FileStream(saveFilePath, FileMode.Open, FileAccess.Read);
             var saveFileData = saveFileReader.ReadSaveFile(fileStream);
-            return saveFileData.ModsInSave.Select(m => mapperService.MapToReleaseDataId(m)).ToList();
+            return saveFileData.ModsInSave
+                .Select(m => (IReleaseDataUnresolvedId)mapperService.MapToReleaseDataId(m))
+                .ToList();
+        }
+
+        public List<IReleaseDataUnresolvedId> GetReleasesFromModNamesToExtract(List<string> modNamesToExtract)
+        {
+            return modNamesToExtract
+                .Select(m => (IReleaseDataUnresolvedId)new ReleaseDataUnresolvedId(m))
+                .ToList();
         }
     }
 }
