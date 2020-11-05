@@ -74,12 +74,7 @@ namespace FactorioModsManager.Services.Implementations
 
         public bool ReleaseIsStored(IReleaseDataForModsStorage release)
         {
-            return ReleaseIsStored(release.ModName, release.Version);
-        }
-
-        public bool ReleaseIsStored(string modName, FactorioVersion version)
-        {
-            return File.Exists(Path.Combine(modsPath, ReleaseData.GetFileName(modName, version)));
+            return File.Exists(Path.Combine(modsPath, ReleaseData.GetFileName(release.ModName, release.Version)));
         }
 
         public void StoreRelease(IReleaseDataForModsStorage release, byte[] bytes)
@@ -90,18 +85,8 @@ namespace FactorioModsManager.Services.Implementations
 
         public void DiscardRelease(IReleaseDataForModsStorage release)
         {
-            DiscardRelease(release.ModName, release.Version);
-        }
-
-        public void DiscardRelease(string modName, FactorioVersion version)
-        {
-            File.Delete(Path.Combine(modsPath, ReleaseData.GetFileName(modName, version)));
-            RemoveFromAllStoredReleases(modName, version);
-        }
-
-        public void GetAllCached(ModData mod, List<FactorioVersion> result)
-        {
-            GetAllCached(mod.Name, result);
+            File.Delete(Path.Combine(modsPath, ReleaseData.GetFileName(release.ModName, release.Version)));
+            RemoveFromAllStoredReleases(release.ModName, release.Version);
         }
 
         public void GetAllCached(string modName, List<FactorioVersion> result)

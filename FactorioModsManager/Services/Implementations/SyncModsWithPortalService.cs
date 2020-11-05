@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FactorioModPortalClient;
 using FactorioModsManager.Infrastructure;
+using FactorioModsManager.Infrastructure.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FactorioModsManager.Services.Implementations
@@ -213,7 +214,7 @@ namespace FactorioModsManager.Services.Implementations
         {
             bool shouldDelete;
 
-            modsStorageService.GetAllCached(mod, cachedReleases);
+            modsStorageService.GetAllCached(mod.Name, cachedReleases);
 
             foreach (var maintainedVersion in maintainedVersions)
             {
@@ -269,7 +270,7 @@ namespace FactorioModsManager.Services.Implementations
             shouldDelete = configService.GetConfig().DeleteOldReleases;
             foreach (var deletedVersion in cachedReleases)
             {
-                mainService.UnmaintainRelease(mod.Name, deletedVersion, shouldDelete);
+                mainService.UnmaintainRelease(new ReleaseDataForModsStorage(mod.Name, deletedVersion), shouldDelete);
             }
         }
 
@@ -305,23 +306,18 @@ namespace FactorioModsManager.Services.Implementations
             }
         }
 
-        public void EnsureReleaseIsNotMaintained(ReleaseData release, bool shouldDelete)
+        public void EnsureReleaseIsNotMaintained(IReleaseDataForModsStorage release, bool shouldDelete)
         {
             if (modsStorageService.ReleaseIsCached(release))
                 mainService.UnmaintainRelease(release, shouldDelete);
         }
 
-        public void UnmaintainRelease(ReleaseData release, bool shouldDelete)
+        public void UnmaintainRelease(IReleaseDataForModsStorage release, bool shouldDelete)
         {
-            mainService.UnmaintainRelease(release.Mod.Name, release.Version, shouldDelete);
-        }
-
-        public void UnmaintainRelease(string modName, FactorioVersion version, bool shouldDelete)
-        {
-            if (shouldDelete && modsStorageService.ReleaseIsStored(modName, version))
+            if (shouldDelete && modsStorageService.ReleaseIsStored(release))
             {
-                Console.WriteLine($"Deleting    {ReleaseData.GetFileName(modName, version)}.");
-                modsStorageService.DiscardRelease(modName, version);
+                Console.WriteLine($"Deleting    {release.GetFileName()}.");
+                modsStorageService.DiscardRelease(release);
             }
         }
     }

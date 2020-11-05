@@ -4,7 +4,7 @@
     {
         string ModName { get; }
 
-        FactorioVersion Version { get; set; }
+        FactorioVersion Version { get; }
 
         string GetFileName();
     }
