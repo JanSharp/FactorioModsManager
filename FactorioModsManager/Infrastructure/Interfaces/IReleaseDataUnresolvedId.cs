@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace FactorioModsManager.Infrastructure.Interfaces
+﻿namespace FactorioModsManager.Infrastructure.Interfaces
 {
-    public interface IReleaseDataUnresolvedId
+    public interface IReleaseDataUnresolvedId : IReleaseDataId
     {
-        string ModName { get; }
         bool HasFixedVersion { get; }
-        FactorioVersion? Version { get; set; }
+
+        new FactorioVersion? Version { get; set; }
+
         FactorioVersion GetVersion();
     }
 }
