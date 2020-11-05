@@ -69,7 +69,7 @@ namespace FactorioModsManager.Services.Implementations
         {
             if (programArgs.ModListPath != null)
             {
-
+                return GetReleasesFromModList(programArgs.ModListPath);
             }
 
             if (programArgs.SaveFilePath != null)
