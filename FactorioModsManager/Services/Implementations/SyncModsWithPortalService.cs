@@ -205,6 +205,9 @@ namespace FactorioModsManager.Services.Implementations
                 if (releaseData.ReleasedAt == portalEntry.LatestRelease.ReleasedAt)
                     modData.LatestRelease = releaseData;
             }
+
+            if (modData.GroupedReleases.Count == 0)
+                modData.LatestRelease = null;
         }
 
         public async Task SyncMaintainedReleasesAsync(
