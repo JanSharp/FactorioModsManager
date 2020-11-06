@@ -20,6 +20,8 @@ namespace FactorioModsManager.UnitTests.Services.Implementations
         const string ExtractModNameArg = "--extract-mod-name";
         const string ExtractModNameShortArg = "-e";
         const string DoNotExtractDependenciesArg = "--do-not-extract-dependencies";
+        const string TargetFactorioVersionToExtractArg = "--target-factorio-version-to-extract";
+        const string TargetFactorioVersionToExtractShortArg = "-t";
 
         const string ConfigExtraArg = @"C:\Test\Path\config.xml";
         const string ExtractModsPathExtraArg = @"C:\Test\Path\ExtractedMods";
@@ -197,6 +199,22 @@ namespace FactorioModsManager.UnitTests.Services.Implementations
             act.Should().ThrowExactly<Exception>();
         }
 
+        [Test]
+        public void ParseArgs_TargetFactorioVersionToExtractWithoutName_ThrowException()
+        {
+            // Arrange
+            var args = new[]
+            {
+                TargetFactorioVersionToExtractArg,
+            };
+
+            // Act
+            Action act = () => ArgsService.ParseArgs(args);
+
+            // Assert
+            act.Should().ThrowExactly<Exception>();
+        }
+
 
         [Test]
         public void ParseArgs_ExtractModsPathAndModListPathAndSaveFilePathAndExtractModNameSet_ThrowException()
@@ -282,6 +300,24 @@ namespace FactorioModsManager.UnitTests.Services.Implementations
 
             // Assert
             act.Should().ThrowExactly<Exception>();
+        }
+
+
+        [Test]
+        public void ParseArgs_TargetFactorioVersionToExtractWithInvalidVersion_ThrowException()
+        {
+            // Arrange
+            var args = new[]
+            {
+                TargetFactorioVersionToExtractArg,
+                "foo",
+            };
+
+            // Act
+            Action act = () => ArgsService.ParseArgs(args);
+
+            // Assert
+            act.Should().Throw<Exception>();
         }
 
 
@@ -375,7 +411,7 @@ namespace FactorioModsManager.UnitTests.Services.Implementations
         }
 
         [Test]
-        public void ParseArgs_ExtractModsPathAnTwoExtractModNameSet_GetPathsAndModNames()
+        public void ParseArgs_ExtractModsPathAndTwoExtractModNameSet_GetPathsAndModNames()
         {
             // Arrage
             var expected = new ProgramArgs()
@@ -405,7 +441,7 @@ namespace FactorioModsManager.UnitTests.Services.Implementations
         }
 
         [Test]
-        public void ParseArgs_ExtractModsPathAnTwoExtractModNameSetUsingNormalAndShortArg_GetPathsAndModNames()
+        public void ParseArgs_ExtractModsPathAndTwoExtractModNameSetUsingNormalAndShortArg_GetPathsAndModNames()
         {
             // Arrage
             var expected = new ProgramArgs()
@@ -425,6 +461,33 @@ namespace FactorioModsManager.UnitTests.Services.Implementations
                 ExtractModNameExtraArgFoo,
                 ExtractModNameShortArg,
                 ExtractModNameExtraArgBar,
+            };
+
+            // Act
+            var actual = ArgsService.ParseArgs(args);
+
+            // Assert
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        [Test]
+        public void ParseArgs_TargetFactorioVersionToExtractUsingNormalAndShortArg_GetVersions()
+        {
+            // Arrage
+            var expected = new ProgramArgs()
+            {
+                TargetFactorioVersionsToExtract =
+                {
+                    new FactorioVersion(1, 0),
+                    new FactorioVersion(0, 18),
+                }
+            };
+            var args = new[]
+            {
+                TargetFactorioVersionToExtractArg,
+                "1.0",
+                TargetFactorioVersionToExtractShortArg,
+                "0.18",
             };
 
             // Act

@@ -4,6 +4,11 @@ namespace FactorioModsManager.Infrastructure
 {
     public class ProgramArgs
     {
+        public ProgramArgs()
+        {
+            TargetFactorioVersionsToExtract = new List<FactorioVersion>();
+        }
+
         public string? ConfigFilePath { get; set; }
 
         /// <summary>
@@ -20,5 +25,7 @@ namespace FactorioModsManager.Infrastructure
         public List<string>? ModNamesToExtract { get; set; }
 
         public bool DoNotExtractDependencies { get; set; }
+
+        public List<FactorioVersion> TargetFactorioVersionsToExtract { get; }
     }
 }

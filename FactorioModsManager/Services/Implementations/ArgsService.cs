@@ -66,6 +66,12 @@ namespace FactorioModsManager.Services.Implementations
                         result.DoNotExtractDependencies = true;
                         break;
 
+                    case "--target-factorio-version-to-extract":
+                    case "-t":
+                        MoveToExtraArgFor("--target-factorio-version-to-extract");
+                        result.TargetFactorioVersionsToExtract.Add(FactorioVersion.Parse(args[i], readPatch: false));
+                        break;
+
                     default:
                         throw new Exception($"Unexpected cmd arg '{args[i]}'.");
                 }
