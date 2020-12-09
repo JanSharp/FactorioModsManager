@@ -13,6 +13,7 @@ namespace FactorioModsManager.Infrastructure
             DependencyType = dependencyType;
         }
 
+        // regex used by the game: (^(?:(\?|\(\?\)|!) *)?(.+?)(?: *([<>=]=?) *([0-9.]+))?$)
         static readonly Regex DependencyRegex = new Regex(@"
             ^
             (?>(?<prefix>[!?]|\(\?\))\ *)?
