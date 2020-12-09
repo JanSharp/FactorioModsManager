@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ namespace FactorioModsManager.Services.Implementations
     {
         private readonly ExtractModsService extractModsService;
         private readonly IArgsService argsService;
+        private readonly IProgramDataService programDataService;
         private readonly IMapperService mapperService;
         private readonly IModsStorageService modsStorageService;
         private readonly IModListService modListService;
@@ -21,6 +23,7 @@ namespace FactorioModsManager.Services.Implementations
         [ActivatorUtilitiesConstructor]
         public ExtractModsService(
             IArgsService argsService,
+            IProgramDataService programDataService,
             IMapperService mapperService,
             IModsStorageService modsStorageService,
             IModListService modListService,
@@ -28,6 +31,7 @@ namespace FactorioModsManager.Services.Implementations
         {
             extractModsService = this;
             this.argsService = argsService;
+            this.programDataService = programDataService;
             this.mapperService = mapperService;
             this.modsStorageService = modsStorageService;
             this.modListService = modListService;
@@ -46,12 +50,14 @@ namespace FactorioModsManager.Services.Implementations
         public ExtractModsService(
             ExtractModsService extractModsService = null,
             IArgsService argsService = null,
+            IProgramDataService programDataService = null,
             IMapperService mapperService = null,
             IModsStorageService modsStorageService = null,
             IModListService modListService = null,
             ISaveFileReader saveFileReader = null)
             :
             this(argsService,
+                programDataService,
                 mapperService,
                 modsStorageService,
                 modListService,
@@ -63,14 +69,23 @@ namespace FactorioModsManager.Services.Implementations
 
         public async Task RunAsync()
         {
-            var releases = GetReleasesToExtract(argsService.GetArgs());
+            var programArgs = argsService.GetArgs();
+            var releases = GetReleasesToExtract(programArgs);
+
+            foreach (var release in releases)
+            {
+                if (modsStorageService.ReleaseIsStored(release))
+                    modsStorageService.ExtractRelease(release, programArgs.ExtractModsPath!);
+            }
         }
 
         public List<IReleaseDataUnresolvedId> GetReleasesToExtract(ProgramArgs programArgs)
         {
             if (programArgs.ModListPath != null)
             {
-                return GetReleasesFromModList(programArgs.ModListPath);
+                var releases = GetReleasesFromModList(programArgs.ModListPath);
+                ResolveReleasesAndDependencies(releases, programArgs);
+                return releases;
             }
 
             if (programArgs.SaveFilePath != null)
@@ -80,7 +95,9 @@ namespace FactorioModsManager.Services.Implementations
 
             if (programArgs.ModNamesToExtract != null)
             {
-                return GetReleasesFromModNamesToExtract(programArgs.ModNamesToExtract);
+                var releases = GetReleasesFromModNamesToExtract(programArgs.ModNamesToExtract);
+                ResolveReleasesAndDependencies(releases, programArgs);
+                return releases;
             }
 
             throw new ImpossibleException($"{nameof(ProgramArgs.ModListPath)}, {nameof(ProgramArgs.SaveFilePath)} and " +
@@ -111,6 +128,57 @@ namespace FactorioModsManager.Services.Implementations
             return modNamesToExtract
                 .Select(m => (IReleaseDataUnresolvedId)new ReleaseDataUnresolvedId(m))
                 .ToList();
+        }
+
+        private Exception GetUnknownModException(string modName)
+            => new Exception($"Unknown mod {modName}.");
+
+        public List<IReleaseDataUnresolvedId> ResolveReleasesAndDependencies(
+            List<IReleaseDataUnresolvedId> releases,
+            ProgramArgs programArgs)
+        {
+            ProgramData? programData = null;
+            ProgramData GetProgramData()
+            {
+                if (programData == null)
+                    programData = programDataService.GetProgramData();
+                return programData;
+            }
+
+            var releasesToRemove = new List<IReleaseDataUnresolvedId>();
+
+            foreach (var release in releases)
+            {
+                if (GetProgramData().Mods.TryGetValue(release.ModName, out var modData))
+                {
+                    if (release.Version == null)
+                    {
+                        release.Version = modData.LatestRelease?.Version
+                        ?? throw new Exception($"Mod {release.ModName} does not have any releases.");
+                    }
+                }
+                else
+                {
+                    releasesToRemove.Add(release);
+                    Console.WriteLine($"Unknown mod {release.ModName}.");
+                }
+            }
+
+            foreach (var release in releasesToRemove)
+            {
+                releases.Remove(release);
+            }
+
+            return releases;
+        }
+
+        private class ResolveData
+        {
+            public string ModName { get; set; }
+
+            public ReleaseData CurrentRelease { get; set; }
+
+            public List<ModDependency> DependenciesTargetingThisMod { get; set; }
         }
     }
 }
