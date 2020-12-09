@@ -144,9 +144,22 @@ namespace FactorioModsManager.Services.Implementations
         {
             mapperService.MapToModData(portalEntryFull, modData);
 
-            var existingReleasesMap = modData.GroupedReleases
-                .SelectMany(g => g.Value)
-                .ToDictionary(r => r.Version.ToString());
+            var duplicateVersions = new HashSet<string>();
+            var existingReleasesMap = new Dictionary<string, ReleaseData>();
+            foreach (var release in modData.GroupedReleases
+                .SelectMany(g => g.Value))
+            {
+                string version = release.Version.ToString();
+                if (existingReleasesMap.ContainsKey(version))
+                {
+                    existingReleasesMap.Remove(version);
+                    duplicateVersions.Add(version);
+                }
+                else if (!duplicateVersions.Contains(version))
+                {
+                    existingReleasesMap.Add(version, release);
+                }
+            }
 
             modData.GroupedReleases = new Dictionary<FactorioVersion, List<ReleaseData>>();
 
