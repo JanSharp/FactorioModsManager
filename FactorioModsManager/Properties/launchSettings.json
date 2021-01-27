@@ -2,7 +2,7 @@
   "profiles": {
     "FactorioModsManager": {
       "commandName": "Project",
-      "commandLineArgs": "--config E:\\Data\\General\\FactorioModsManager\\config.xml"
+      "commandLineArgs": "--config C:\\Data\\General\\FactorioModsManager\\config_1.1.xml"
     }
   }
 }
