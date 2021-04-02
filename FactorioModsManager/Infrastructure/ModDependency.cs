@@ -15,7 +15,7 @@ namespace FactorioModsManager.Infrastructure
 
         static readonly Regex DependencyRegex = new Regex(@"
             ^
-            (?>(?<prefix>[!?]|\(\?\))\ *)?
+            (?>(?<prefix>[!?~]|\(\?\))\ *)?
             (?<name>(?>\ *[a-zA-Z0-9_-]+)+(?>\ *$)?)
             (?>\ *
                 (?<operator>[<>=]=?)\ *
@@ -37,6 +37,7 @@ namespace FactorioModsManager.Infrastructure
                 "?" => ModDependencyType.Optional,
                 "(?)" => ModDependencyType.HiddenOptional,
                 "!" => ModDependencyType.Incompatible,
+                "~" => ModDependencyType.Unordered,
                 _ => ModDependencyType.Regular,
             };
 

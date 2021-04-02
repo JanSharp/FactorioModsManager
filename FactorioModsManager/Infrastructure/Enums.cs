@@ -12,6 +12,8 @@ namespace FactorioModsManager.Infrastructure
         [EnumMember]
         HiddenOptional,
         [EnumMember]
+        Unordered,
+        [EnumMember]
         Incompatible,
     }
 
