@@ -92,7 +92,7 @@ namespace FactorioModsManager.Infrastructure
             {
                 return this.CompareTo(other);
             }
-            throw new Exception($"Trying to compare a {nameof(FactorioVersion)} to an object athat is not of the same type.");
+            throw new Exception($"Trying to compare a {nameof(FactorioVersion)} to an object that is not of the same type.");
         }
 
         public int CompareTo(FactorioVersion? other)
